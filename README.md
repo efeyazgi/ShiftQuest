@@ -3,11 +3,12 @@
 [![CI](https://github.com/efeyazgi/ShiftQuest/actions/workflows/ci.yml/badge.svg)](https://github.com/efeyazgi/ShiftQuest/actions/workflows/ci.yml)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20Postgres-3FCF8E?logo=supabase&logoColor=white)](https://supabase.com/)
+[![Live](https://img.shields.io/badge/Live-shiftquest.vercel.app-00d8ff?logo=vercel)](https://shiftquest.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-c7ff4a.svg)](LICENSE)
 
 ShiftQuest, kimya mühendisliği öğrencileri ve kariyerinin başındaki mühendisler için hazırlanmış oyunlaştırılmış bir profesyonel İngilizce eğitim uygulamasıdır. Kullanıcılar kısa iş yeri senaryolarında iletişim pratiği yapar, dinleme alıştırmaları çözer, kelime kasası oluşturur ve gelişimini kariyer haritasında takip eder.
 
-Uygulama bir Next.js App Router projesidir. Hesaplar ve kullanıcıya ait oyun kayıtları Supabase Auth + Postgres üzerinde tutulur; arayüz Vercel’e dağıtılacak şekilde tasarlanmıştır. Harici AI isteğe bağlıdır ve sağlayıcı anahtarları yalnız kullanıcının tarayıcısında kalır.
+Uygulama bir Next.js App Router projesidir. Hesaplar ve kullanıcıya ait oyun kayıtları Supabase Auth + Postgres üzerinde tutulur; arayüz [Vercel’de yayındadır](https://shiftquest.vercel.app). Harici AI isteğe bağlıdır ve sağlayıcı anahtarları yalnız kullanıcının tarayıcısında kalır.
 
 ## Öne çıkan özellikler
 
