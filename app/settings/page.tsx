@@ -37,6 +37,7 @@ import { LoadingScreen } from "@/components/ui/loading-screen";
 import { Panel } from "@/components/ui/panel";
 import { GAME_TITLE_DISCLAIMER } from "@/data/career";
 import { exportGameData, useGameStore } from "@/features/game/store";
+import { useCloudSync } from "@/features/sync/cloud-sync-provider";
 import type { AccentPreference, CEFRLevel } from "@/types";
 
 type DailyGoal = 5 | 10 | 15 | 20;
@@ -132,6 +133,8 @@ export default function SettingsPage() {
   const updateAccessibility = useGameStore((state) => state.updateAccessibility);
   const importData = useGameStore((state) => state.importData);
   const resetAll = useGameStore((state) => state.resetAll);
+  const { status: cloudStatus } = useCloudSync();
+  const cloudLoading = cloudStatus === "loading" || cloudStatus === "idle";
 
   const [displayName, setDisplayName] = useState("");
   const [level, setLevel] = useState<CEFRLevel>("B1");
@@ -142,8 +145,8 @@ export default function SettingsPage() {
   const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (hydrated && !profile?.onboardingComplete) router.replace("/onboarding");
-  }, [hydrated, profile, router]);
+    if (hydrated && !cloudLoading && !profile?.onboardingComplete) router.replace("/onboarding");
+  }, [cloudLoading, hydrated, profile, router]);
 
   useEffect(() => {
     if (!profile) return;
@@ -160,7 +163,7 @@ export default function SettingsPage() {
       return;
     }
     updateProfile({ displayName: cleanName, level, accent, dailyGoalMinutes: dailyGoal });
-    setProfileNotice("Player profile saved to this device.");
+    setProfileNotice("Profil kaydedildi; bulut senkronizasyonuna alındı.");
   };
 
   const exportProgress = () => {
@@ -215,8 +218,8 @@ export default function SettingsPage() {
     router.replace("/onboarding");
   };
 
-  if (!hydrated || !profile?.onboardingComplete) {
-    return <LoadingScreen label={hydrated ? "Profil yönlendiriliyor" : "Ayarlar yükleniyor"} />;
+  if (!hydrated || cloudLoading || !profile?.onboardingComplete) {
+    return <LoadingScreen label={hydrated && !cloudLoading ? "Profil yönlendiriliyor" : "Bulut ilerlemesi yükleniyor"} />;
   }
 
   return (
@@ -228,12 +231,12 @@ export default function SettingsPage() {
             <div>
               <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-cyan"><span className="h-1.5 w-1.5 rounded-full bg-lime" /> Player control room</div>
               <h1 className="mt-3 font-display text-4xl font-black uppercase tracking-[-0.04em] text-white sm:text-6xl">Settings</h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">Öğrenme rotanı, ses kanalını, erişilebilirliği ve yerel kayıtlarını tek terminalden yönet.</p>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">Öğrenme rotanı, ses kanalını, erişilebilirliği ve bulut kayıtlarını tek terminalden yönet.</p>
             </div>
             <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/15 px-4 py-3">
               <div className="grid h-10 w-10 place-items-center rounded-lg border border-cyan/25 bg-cyan/10 text-cyan"><UserRound className="h-5 w-5" /></div>
-              <div><p className="text-[9px] font-black uppercase tracking-[0.14em] text-slate-500">Local player</p><p className="mt-1 text-sm font-bold text-white">{profile.displayName}</p></div>
-              <span className="ml-2 h-2 w-2 rounded-full bg-lime shadow-[0_0_10px_rgba(199,255,74,.7)]" title="Yerel kayıt etkin" />
+              <div><p className="text-[9px] font-black uppercase tracking-[0.14em] text-slate-500">Cloud player</p><p className="mt-1 text-sm font-bold text-white">{profile.displayName}</p></div>
+              <span className="ml-2 h-2 w-2 rounded-full bg-lime shadow-[0_0_10px_rgba(199,255,74,.7)]" title="Bulut senkronizasyonu etkin" />
             </div>
           </div>
         </section>
@@ -371,7 +374,7 @@ export default function SettingsPage() {
             <div>
               <div className="flex items-center gap-3">
                 <div className="grid h-10 w-10 place-items-center rounded-xl border border-cyan/25 bg-cyan/10 text-cyan"><ShieldCheck className="h-5 w-5" /></div>
-                <div><h2 className="font-display text-lg font-black uppercase text-white">Local save control</h2><p className="text-xs text-slate-500">Profil ve öğrenme verileri bu tarayıcıda saklanır.</p></div>
+                <div><h2 className="font-display text-lg font-black uppercase text-white">Cloud save control</h2><p className="text-xs text-slate-500">Profil ve öğrenme verileri hesabına senkronize edilir; bu tarayıcı çevrimdışı önbellek tutar.</p></div>
               </div>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <button type="button" onClick={exportProgress} className="group flex min-h-20 items-center gap-4 rounded-xl border border-lime/20 bg-lime/[0.045] p-4 text-left transition hover:bg-lime/[0.08]">

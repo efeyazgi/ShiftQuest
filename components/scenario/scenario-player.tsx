@@ -9,6 +9,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { getScenarioById } from "@/data/scenarios";
 import { getVocabularyById } from "@/data/vocabulary";
 import { useGameStore } from "@/features/game/store";
+import { useCloudSync } from "@/features/sync/cloud-sync-provider";
 import { playGameSound } from "@/features/audio/game-sounds";
 import type { AnswerAttempt, LearningErrorType, MissionResult } from "@/types";
 import { AppShell } from "@/components/layout/app-shell";
@@ -39,6 +40,8 @@ export function ScenarioPlayer({ scenarioId }: { scenarioId: string }) {
   const settings = useGameStore((state) => state.settings);
   const recordAnswer = useGameStore((state) => state.recordAnswer);
   const completeScenario = useGameStore((state) => state.completeScenario);
+  const { status: cloudStatus } = useCloudSync();
+  const cloudLoading = cloudStatus === "loading" || cloudStatus === "idle";
   const [started, setStarted] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [feedback, setFeedback] = useState<StepAnswer | null>(null);
@@ -51,14 +54,14 @@ export function ScenarioPlayer({ scenarioId }: { scenarioId: string }) {
   const stepStartedAt = useRef(Date.now());
 
   useEffect(() => {
-    if (hydrated && !profile) router.replace("/onboarding");
-  }, [hydrated, profile, router]);
+    if (hydrated && !cloudLoading && !profile) router.replace("/onboarding");
+  }, [cloudLoading, hydrated, profile, router]);
 
   const relevantHistory = useMemo(() => previousAttempts.filter((attempt) => attempt.level === profile?.level).slice(-15), [previousAttempts, profile?.level]);
   const recentAccuracy = relevantHistory.length ? relevantHistory.filter((attempt) => attempt.correct).length / relevantHistory.length * 100 : 70;
   const adaptiveMode = recentAccuracy >= 88 && profile?.level === "B2" ? "challenge" : recentAccuracy < 58 ? "support" : "standard";
 
-  if (!hydrated || !profile) return <AppShell><LoadingScreen label="Vardiya profili yükleniyor" /></AppShell>;
+  if (!hydrated || cloudLoading || !profile) return <AppShell><LoadingScreen label="Bulut vardiya profili yükleniyor" /></AppShell>;
   if (!scenario) return <AppShell><div className="mx-auto max-w-2xl px-5 py-24"><Panel className="p-8 text-center"><ShieldAlert className="mx-auto h-10 w-10 text-coral" /><h1 className="mt-4 text-2xl font-black">Görev bulunamadı</h1><p className="mt-2 text-slate-400">Bu görev kampüs kayıtlarında yok veya kaldırılmış.</p><Link href="/map" className="mt-6 inline-flex"><Button>Haritaya dön</Button></Link></Panel></div></AppShell>;
 
   const locked = progress.totalXp < scenario.unlock.requiredXp || scenario.unlock.requiredScenarioIds.some((id) => !progress.completedScenarioIds.includes(id));

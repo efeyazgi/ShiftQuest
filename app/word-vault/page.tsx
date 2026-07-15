@@ -32,6 +32,7 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { vocabularyById } from "@/data/vocabulary";
 import { useTTS } from "@/features/audio/use-tts";
 import { useGameStore } from "@/features/game/store";
+import { useCloudSync } from "@/features/sync/cloud-sync-provider";
 import { useProviderSettingsStore } from "@/features/providers/store";
 import type { ScenarioCategory, VocabularyItem, VocabularyProgress } from "@/types";
 
@@ -99,6 +100,8 @@ export default function WordVaultPage() {
   const toggleFavorite = useGameStore((state) => state.toggleVocabularyFavorite);
   const reviewVocabulary = useGameStore((state) => state.reviewVocabulary);
   const tts = useTTS();
+  const { status: cloudStatus } = useCloudSync();
+  const cloudLoading = cloudStatus === "loading" || cloudStatus === "idle";
 
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<"all" | ScenarioCategory | "general">("all");
@@ -114,8 +117,8 @@ export default function WordVaultPage() {
   const initialReviewHandled = useRef(false);
 
   useEffect(() => {
-    if (hydrated && !profile?.onboardingComplete) router.replace("/onboarding");
-  }, [hydrated, profile, router]);
+    if (hydrated && !cloudLoading && !profile?.onboardingComplete) router.replace("/onboarding");
+  }, [cloudLoading, hydrated, profile, router]);
 
   useEffect(() => {
     if ((tts.status === "idle" || tts.status === "error") && playingId) {
@@ -246,8 +249,8 @@ export default function WordVaultPage() {
   const activeReviewItem = reviewQueue[reviewIndex] ? vocabularyById.get(reviewQueue[reviewIndex]!) : undefined;
   const activeReviewProgress = activeReviewItem ? vocabularyProgress[activeReviewItem.id] : undefined;
 
-  if (!hydrated || !profile?.onboardingComplete) {
-    return <LoadingScreen label={hydrated ? "Profil yönlendiriliyor" : "Word Vault açılıyor"} />;
+  if (!hydrated || cloudLoading || !profile?.onboardingComplete) {
+    return <LoadingScreen label={hydrated && !cloudLoading ? "Profil yönlendiriliyor" : "Bulut ilerlemesi yükleniyor"} />;
   }
 
   if (reviewQueue.length) {

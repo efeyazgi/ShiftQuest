@@ -1,193 +1,172 @@
-<p align="center">
-  <img src="./public/shiftquest-mark.svg" alt="ShiftQuest logo" width="132" />
-</p>
+# ShiftQuest
 
-<h1 align="center">ShiftQuest</h1>
+[![CI](https://github.com/efeyazgi/ShiftQuest/actions/workflows/ci.yml/badge.svg)](https://github.com/efeyazgi/ShiftQuest/actions/workflows/ci.yml)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20Postgres-3FCF8E?logo=supabase&logoColor=white)](https://supabase.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-c7ff4a.svg)](LICENSE)
 
-<p align="center"><strong>Engineer English Arcade</strong><br />Kimya mühendisleri için kariyer temalı, oyunlaştırılmış profesyonel İngilizce pratiği.</p>
+ShiftQuest, kimya mühendisliği öğrencileri ve kariyerinin başındaki mühendisler için hazırlanmış oyunlaştırılmış bir profesyonel İngilizce eğitim uygulamasıdır. Kullanıcılar kısa iş yeri senaryolarında iletişim pratiği yapar, dinleme alıştırmaları çözer, kelime kasası oluşturur ve gelişimini kariyer haritasında takip eder.
 
-ShiftQuest; B1–B2 düzeyindeki öğrencileri ve genç mühendisleri ofis, üretim, toplantı, kalite, güvenlik ve kariyer iletişimi senaryolarına taşır. Kısa görevler XP, coin, unvan ve kelime hâkimiyeti üretir; dashboard ise ezber puanı yerine kullanıcının nerede güçlendiğini gösterir.
+Uygulama bir Next.js App Router projesidir. Hesaplar ve kullanıcıya ait oyun kayıtları Supabase Auth + Postgres üzerinde tutulur; arayüz Vercel’e dağıtılacak şekilde tasarlanmıştır. Harici AI isteğe bağlıdır ve sağlayıcı anahtarları yalnız kullanıcının tarayıcısında kalır.
 
-> ShiftQuest bir dil öğrenme oyunudur. İçerik gerçek proses işletme, ekipman kullanma, iş güvenliği eğitimi veya mesleki yeterlilik belgesi yerine geçmez. Uygulamadaki kariyer unvanları yalnızca oyun içi ilerlemeyi temsil eder.
+## Öne çıkan özellikler
 
-## Hızlı başlangıç
-
-Gereksinimler: güncel LTS [Node.js](https://nodejs.org/) sürümü (önerilen Node.js 20+) ve npm.
-
-```bash
-npm install
-npm run dev
-```
-
-Ardından [http://localhost:3000](http://localhost:3000) adresini açın. Harici AI veya TTS anahtarı olmadan da seed senaryolar ve yerleşik fallback'ler ile temel oyun çalışır.
-
-Üretim doğrulamaları:
-
-```bash
-npm run lint
-npm run typecheck
-npm run build
-npm run start
-```
-
-## Oyun akışı
-
-1. Onboarding'de `B1`/`B2`, kariyer alanı, aksan, günlük hedef ve avatar seçilir.
-2. İlk harita açılışında bir dakikadan kısa **Quick Start** turu; görevleri, Daily Shift'i, XP/coin'i, Word Vault'u, Performans'ı ve AI/ses ayarlarını gerçek ekran öğeleri üzerinde gösterir.
-3. Career Map üzerinden açık bir görev veya Daily Shift başlatılır.
-4. Diyalog, cümle kurma, boşluk doldurma, ton kontrolü ve hızlı yanıt gibi adımlar çözülür.
-5. Tıklanabilir ifadeler açıklama, telaffuz ve örnek cümle kartını açar; istenen kelimeler Word Vault'a eklenir.
-6. Görev sonunda XP/coin, doğruluk, hatalar ve tekrar önerileri kaydedilir.
-7. Dashboard; gerçek oturum kayıtlarından güçlü alanları, zorlanılan kelimeleri ve gelişimi hesaplar.
-
-Tur atlanabilir ve profil bazında yalnız bir kez otomatik açılır. Header'daki `?` düğmesinden veya **Ayarlar → ShiftQuest nasıl çalışır?** panelinden yeniden başlatılabilir.
-
-B1 modu daha kısa cümleler, daha fazla Türkçe destek ve daha belirgin seçenekler; B2 modu ise daha yakın çeldiriciler, doğal iş kalıpları ve daha az ipucu kullanır. Hatalar XP düşürmez.
-
-## Sayfalar
-
-| Yol | Ekran | Ne sunar? |
-| --- | --- | --- |
-| `/` | Landing | Ürün tanıtımı, özellik özeti, kariyer haritası ön izlemesi ve **Start Your Shift** aksiyonu |
-| `/onboarding` | Onboarding | Seviye, kariyer odağı, aksan, günlük hedef ve avatar seçimi |
-| `/map` | Career Map | Bölge/görev kilitleri, günlük görev, boss noktaları ve oyun içi unvan |
-| `/scenario/[id]` | Scenario Player | Diyalog, mini oyun, kelime kartı, TTS, ipucu, XP ve görev ilerlemesi |
-| `/results` | Mission Results | XP/coin, doğruluk, yeni kelimeler, düzeltmeler ve sıradaki görev |
-| `/dashboard` | Dashboard | XP/çalışma grafikleri, beceri ve kategori analizi, içgörüler ve son aktiviteler |
-| `/word-vault` | Word Vault | Kaydedilen ifadeler, filtreler, favoriler, hâkimiyet ve aralıklı tekrar |
-| `/settings` | Profile & Settings | Seviye, aksan, hedef, ses/animasyon/tema tercihleri ile veri dışa aktarma/sıfırlama |
-
-Geçersiz veya kilitli senaryo kimlikleri kullanıcıyı oynanabilir içeriğe yönlendirir; boş ve hata durumları sayfa içinde açıklanır.
+- B1 ve B2 seviyelerine uyarlanan 12 görevlik kariyer haritası
+- Diyalog seçimi, cümle kurma, dinleme, eşleştirme, ton kontrolü ve roleplay adımları
+- XP, coin, başarımlar, seri takibi ve bölge kilitleri
+- Leitner kutuları ve ustalık puanlarıyla Word Vault tekrar sistemi
+- Amerikan ve Britanya İngilizcesi ses tercihleri
+- Google Gemini ve OpenAI uyumlu görev motoru/TTS desteği
+- Harici AI çalışmadığında deterministik görev fallback’i
+- E-posta/şifre hesabı, e-posta doğrulama ve şifre sıfırlama
+- Supabase RLS ile kullanıcıya özel bulut kaydı
+- Çevrimdışı localStorage önbelleği ve yeniden bağlanınca senkronizasyon
+- İlk girişte eski yerel ilerlemeyi hesaba aktarma ve çakışma seçim ekranı
+- JSON dışa/içe aktarım, azaltılmış hareket ve yüksek kontrast seçenekleri
 
 ## Mimari
 
-Uygulama Next.js App Router ve TypeScript üzerinde tek bir web istemcisi olarak çalışır. Temel katmanlar:
-
-```text
-app/                  Sayfalar ve sunucu API route'ları
-components/           Arcade HUD, senaryo, dashboard ve ortak UI bileşenleri
-config/brand.ts        Tek noktadan marka adı, alt başlık ve slogan
-data/                 Doğrulanabilir seed senaryolar ve başlangıç kelimeleri
-features/game/         Zustand oyun store'u ve kullanıcı aksiyonları
-lib/
-  providers/           LLM ve TTS adaptörleri ile güvenli fallback'ler
-  storage/             Tarayıcı kalıcılığı ve veri sürümleme sınırı
-  scoring/             XP, coin, unvan ve performans hesapları
-  spaced-repetition/   Kelime tekrar planlama mantığı
-  validation/          Harici/seed veriler için şema doğrulama
-types/                 Paylaşılan domain tipleri
-public/                Özgün marka ve arka plan SVG'leri, web manifesti
+```mermaid
+flowchart LR
+    B[Next.js browser app] -->|cookie session| A[Supabase Auth]
+    B -->|RLS protected save| D[(Postgres game_saves)]
+    B <-->|offline cache| L[(localStorage)]
+    B -->|same-origin route| N[Next.js API routes]
+    N -->|optional BYOK| G[Gemini or compatible provider]
 ```
 
-Veri akışı özetle şöyledir: tipli seed veri veya doğrulanmış provider yanıtı → oyun oturumu → cevap olayı → ilerleme deposu → sonuç ve dashboard türetimleri. UI, provider ayrıntılarını doğrudan bilmez; böylece statik mod ile harici servis modu aynı ekranları kullanır.
+Oyun durumu mevcut Zustand modelini koruyan tek bir sürümlü JSONB belge olarak saklanır. `game_saves.user_id`, `auth.users.id` alanına bağlıdır. SELECT, INSERT, UPDATE ve DELETE politikalarının tamamı `(select auth.uid()) = user_id` sahiplik kontrolünü kullanır.
 
-Markayı yeniden adlandırmak için metinleri ekran ekran aramak yerine `config/brand.ts` içindeki `brand` nesnesini değiştirin. Metadata ve paylaşım metinlerinde kalan ürün adlarını da aynı değişiklikte gözden geçirin.
+API anahtarları `shiftquest-runtime-providers-v1` adlı ayrı tarayıcı kaydındadır. Oyun store’una, Supabase’e veya JSON yedeğine eklenmez ve kullanıcı çıkış yaptığında temizlenir.
 
-## Yerel veri ve kalıcılık
+## Teknoloji yığını
 
-MVP hesap gerektirmez. Onboarding tercihleri, senaryo sonuçları, XP/coin, seri, analitik olaylar, ayarlar ve Word Vault ilerlemesi `features/game/store.ts` içindeki Zustand store üzerinden tarayıcıda kalıcı olarak tutulur. Sürümlü localStorage anahtarı `shiftquest-game-v1`'dir; sayfa yenilemesi veriyi silmez.
+- Next.js 15, React 19 ve TypeScript
+- Tailwind CSS ve Framer Motion
+- Zustand
+- Supabase Auth, Postgres ve Row Level Security
+- Zod
+- Recharts
+- Vercel
 
-- Sunucu tarafında kullanıcı profili veya merkezi hesap senkronizasyonu yoktur.
-- Farklı tarayıcı/profil/cihazlar birbirinden bağımsızdır.
-- Gizli/geçici tarama, tarayıcı verisini temizleme veya site kotası veriyi kaldırabilir.
-- Settings içindeki dışa aktarma, kullanıcıya kendi ilerlemesinin taşınabilir bir kopyasını verir; sıfırlama işlemi yalnızca ShiftQuest verisini hedefler.
-- Depo erişimi istemci sınırında tutulduğu için ileride IndexedDB veya uzak PostgreSQL/Supabase adaptörüne geçirilebilir.
+## Yerel kurulum
 
-## Seed senaryo ekleme
+Gereksinimler:
 
-Yeni içerik eklerken mevcut `Scenario` kaydını örnek alın:
-
-1. `data/scenarios.ts` içindeki senaryo kataloğuna benzersiz bir `id` ve URL-uyumlu `slug` ile yeni kayıt ekleyin; kartta kullanılan ifadeler yoksa önce `data/vocabulary.ts` kataloğunu genişletin.
-2. Seviye (`B1`/`B2`), kategori, süre, karakterler, en az beş görev adımı, hedef kelimeler, XP ve coin ödülünü doldurun.
-3. Her cevap için yalnızca doğru seçeneği değil; kısa Türkçe açıklama ve daha doğal İngilizce alternatifi de sağlayın.
-4. Hedef ifadelerin anlam, sözcük türü, IPA, yaklaşık Türkçe telaffuz, iki dilli örnek ve TTS metinlerini kelime kataloğuyla eşleştirin.
-5. Senaryoyu `scenarios` merkezi export/katalog listesine ekleyin. `id` değerini sonradan değiştirmeyin; kayıtlı kullanıcı ilerlemesi bu kimliği kullanır.
-6. Kilit/açılma koşulu ve harita bölgesi gerekiyorsa kariyer haritası kaydını güncelleyin.
-7. `npm run lint` ve `npm run build` ile tipleri, route üretimini ve şemayı doğrulayın; ardından hem B1 hem B2 görünümünü oynayın.
-
-İçerik güvenlik kuralı: kullanıcıya gerçek ekipman çalıştırma, proses parametresi ayarlama veya güvenlik açısından kritik operasyon talimatı vermeyin. Teknik terimleri profesyonel iletişimin bağlamı olarak kullanın.
-
-## AI ve TTS sağlayıcıları
-
-Proje anahtarsız çalışacak şekilde tasarlanmıştır. Kullanıcı provider bağlantısını doğrudan **Ayarlar → AI + Voice Provider Studio** bölümünden yönetebilir:
-
-En kolay ücretsiz-katman kurulumu Google Gemini'dir:
-
-1. Settings içindeki **Google ile hızlı kurulum** bölümünden [Google AI Studio API keys](https://aistudio.google.com/apikey) sayfasını açın ve yeni bir Gemini Auth key oluşturun.
-2. **Google'ı otomatik ayarla** düğmesine basın. ShiftQuest AI endpoint'ini, düşük kota tüketimli metin modelini, neural TTS modelini ve iki ses profilini otomatik doldurur.
-3. Anahtarı yalnız **Gemini API key** alanına yapıştırın. Ses tarafındaki **AI API anahtarını paylaş** açık olduğunda ikinci kez girmeniz gerekmez.
-4. Önce **AI bağlantısını test et**, ardından **English test** ve **Türkçe test** düğmelerini kullanın. AI testi gerçek roleplay + geribildirim şemasını üretir; yalnız anahtarın varlığını kontrol etmez.
-
-Google Gemini ücretsiz katmanı limitsiz değildir; kullanılabilen modeller, kota ve bölge uygunluğu Google hesabına göre değişebilir. Neural servis yanıt vermezse oyun seed/mock içeriğe ve tarayıcı Speech Synthesis sesine geri döner. İleri seviye kullanıcılar `OpenAI-compatible` modunda kendi HTTPS endpoint, model ve voice kimliklerini girebilir.
-
-Arayüzden girilen bilgiler `shiftquest-runtime-providers-v1` adlı ayrı localStorage kaydında tutulur; oyun store'una ve ilerleme JSON export/import dosyasına girmez. Anahtar yalnız provider isteği sırasında aynı-origin API route'una gönderilir, sunucuda kalıcı olarak saklanmaz. Bu yerel kayıt şifreli bir secret vault değildir; paylaşılan cihazda işiniz bittiğinde **Bağlantıları unut** işlemini kullanın.
-
-Deployment yöneticileri aynı sağlayıcıları sunucu ortam değişkenleriyle de tanımlayabilir. Yerel ortam dosyanızı oluşturun:
+- Node.js 20 veya üzeri
+- npm
+- Bir Supabase projesi
 
 ```bash
-Copy-Item .env.example .env.local
+git clone https://github.com/efeyazgi/ShiftQuest.git
+cd ShiftQuest
+npm install
+copy .env.example .env.local
 ```
 
-macOS/Linux karşılığı: `cp .env.example .env.local`.
-
-Genel sağlayıcı sözleşmesi:
+`.env.local` içindeki zorunlu alanlar:
 
 ```dotenv
-# Arayüz runtime ayarı yoksa kullanılan server varsayılanları
-LLM_PROVIDER=mock
-LLM_API_KEY=
-LLM_BASE_URL=
-LLM_MODEL=
-
-# browser modu Web Speech fallback'ini kullanır
-TTS_PROVIDER=browser
-TTS_API_KEY=
-TTS_BASE_URL=
-TTS_MODEL=
-TTS_ENGLISH_VOICE=
-TTS_TURKISH_VOICE=
-
-# UI'daki özel HTTPS endpoint origin'leri (virgülle ayrılmış)
-RUNTIME_PROVIDER_ALLOWED_ORIGINS=
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
 
-- Provider önceliği `geçerli UI runtime ayarı → server environment → mock/browser fallback` şeklindedir.
-- `LLM_API_KEY` ve `TTS_API_KEY` environment değerlerini **asla** `NEXT_PUBLIC_` ile başlamayın. Bunlar yalnız sunucu route'larında okunur.
-- Runtime base URL yalnız HTTPS olabilir; localhost, IP literal, özel ağlar ve izin listesinin dışındaki origin'ler reddedilir. `https://api.openai.com` ve `https://generativelanguage.googleapis.com` varsayılan olarak izinlidir; başka origin'leri `RUNTIME_PROVIDER_ALLOWED_ORIGINS` ile açıkça ekleyin.
-- `LLM_PROVIDER=google-gemini` boş model/base URL değerlerinde `gemini-3.1-flash-lite` ve native Gemini `generateContent` endpoint'ini kullanır. Görev motoru TTS gibi `x-goog-api-key` ile çalıştığından yeni AI Studio Auth key'leri desteklenir.
-- `TTS_PROVIDER=google-gemini` boş değerlerde `gemini-3.1-flash-tts-preview` ve `Kore` sesini kullanır; Google'ın PCM16 çıktısı tarayıcı için WAV'a dönüştürülür.
-- AI kapalı, hatalı, zaman aşımında veya geçersiz şema döndürdüğünde uygulama seed senaryo/mock feedback'e geri döner.
-- TTS kapalı ya da servis erişilemezse tarayıcı Speech Synthesis kullanılır. Ses kalitesi ve mevcut aksanlar işletim sistemi/tarayıcıya göre değişebilir.
-- Google LLM çıktısı istekte gönderilen structured-output JSON şemasıyla yönlendirilir, ardından aynı tipli şema sunucuda tekrar doğrulanır; geçersiz yanıt arayüze aktarılmaz.
-- Harici TTS kullanıldığında aynı metin/ses/hız bileşimi önbelleğe alınmaya uygundur; böylece gereksiz tekrar çağrıları azaltılır.
+`service_role` veya `sb_secret_...` anahtarını hiçbir zaman `NEXT_PUBLIC_` değişkenine koymayın.
 
-Sunucu entegrasyon sınırı `app/api/scenario`, `app/api/feedback`, `app/api/roleplay` ve `app/api/tts` route'larıdır. Runtime credentials yalnız aynı-origin POST isteklerinde kabul edilir; provider ayarları öğrenme prompt'undan ayrılır ve hata cevapları anahtarı ya da ham upstream cevabını içermez.
+Migration’ı uygulayın:
 
-Desteklenen somut provider adları ve ek değişkenler için `.env.example` dosyasını kaynak kabul edin; bu dosya ile README arasında farklılık olursa `.env.example` geçerlidir.
+```bash
+npx supabase login
+npx supabase link --project-ref YOUR_PROJECT_REF
+npx supabase db push
+```
 
-## Gizlilik, güvenlik ve fallback davranışı
+Supabase Dashboard → Authentication → URL Configuration bölümünde:
 
-- Varsayılan statik modda öğrenme verisi cihazda kalır; uygulamanın kendi uzak kullanıcı veritabanı yoktur.
-- Harici AI etkinse rol yapma girdisi ve değerlendirme için gerekli bağlam seçilen sağlayıcıya gönderilebilir. Üretimde sağlayıcının veri işleme koşullarını ayrıca değerlendirin.
-- Harici TTS etkinse seslendirilecek metin sağlayıcıya gönderilir. Parola, kişisel veri veya şirket sırrı içeren metin kullanmayın.
-- Kullanıcı girdisi prompt talimatıyla birleştirilmeden ayrı veri olarak ele alınmalı; çıktılar şema doğrulamasından geçmelidir.
-- Hata mesajları API anahtarı, ham provider cevabı veya sunucu ayrıntısı göstermez.
-- Mikrofon/kayıt özelliği bu MVP'nin parçası değildir; ileride eklenirse açık izin ve ayrı saklama politikası gerekir.
-- Uygulama içi ses, efekt ve animasyonlar ayrı kapatılabilir; azaltılmış hareket tercihi desteklenir.
+- Site URL: production Vercel adresi
+- Redirect URL: `http://localhost:3000/**`
+- Redirect URL: `https://YOUR_VERCEL_DOMAIN/**`
 
-## Bilinen sınırlamalar
+Ardından uygulamayı başlatın:
 
-- MVP yerel ve tek kullanıcılıdır; oturum açma, bulut yedekleme, cihazlar arası senkronizasyon ve ekip yönetimi yoktur.
-- Web manifesti bulunmasına rağmen tam çevrimdışı PWA önbelleği/service worker sağlanmaz. Önceden yüklenmiş statik içerik bağlantı kesintilerinde daha dayanıklıdır; ilk sayfa yüklemesi için ağ gerekebilir.
-- Neural TTS ve üretken AI, yapılandırılan üçüncü tarafın kota, gecikme, bölge ve fiyatlandırmasına bağlıdır. Fallback modunda deneyim işlevsel kalır fakat daha sınırlıdır.
-- Tarayıcı TTS sesleri tutarlı değildir; bazı cihazlarda istenen American/British/Turkish ses bulunmayabilir.
-- Oyun analitiği kişisel öğrenme içgörüsüdür; CEFR sınavı veya profesyonel yetkinlik ölçümü değildir.
-- Seed içerik kontrollü bir başlangıç setidir; gerçek iş yeri prosedürleri için kurumunuzun onaylı dokümanlarını izleyin.
+```bash
+npm run dev
+```
 
-## Görsel varlıklar
+Uygulama [http://localhost:3000](http://localhost:3000) adresinde açılır.
 
-`public/` altındaki `favicon.svg`, `shiftquest-mark.svg`, `arcade-grid.svg`, `pipeline-pattern.svg` ve `noise.svg` bu proje için özgün olarak oluşturulmuştur. Next.js public yolları sırasıyla `/favicon.svg`, `/shiftquest-mark.svg` vb. şeklindedir. `manifest.webmanifest` uygulama adı, renkleri ve standalone başlangıç davranışını tanımlar.
+## Auth ve bulut kayıt davranışı
 
-## Erişilebilirlik notları
+1. Kullanıcı e-posta ve en az 8 karakterlik şifreyle kayıt olur.
+2. Supabase doğrulama e-postası `/auth/callback` rotasına döner.
+3. Eski bir `shiftquest-game-v1` kaydı varsa yeni hesaba aktarılır.
+4. Hem cihazda hem bulutta farklı kayıt varsa kullanıcı hangi kaydın korunacağını seçer.
+5. Değişiklikler 900 ms beklemeli olarak buluta yazılır.
+6. Ağ kesilirse Zustand persist yerel çalışmayı sürdürür; bağlantı dönünce revision kontrollü senkronizasyon yapılır.
 
-Kritik durumlar yalnız renkle anlatılmaz; buton ve formlarda erişilebilir isimler, klavye odağı ve yeterli kontrast hedeflenir. Hareket hassasiyeti olan kullanıcılar için `prefers-reduced-motion` ve Settings içindeki animasyon tercihi dikkate alınır. Yeni mini oyun eklerken sürükle-bırak etkileşimine bir klavye alternatifi de ekleyin.
+Bulut kayıt şeması [migration dosyasında](supabase/migrations/20260715203142_shiftquest_cloud_saves.sql) bulunur.
+
+## İsteğe bağlı AI ve ses
+
+ShiftQuest dış servis olmadan oynanabilir. Ayarlar → Provider Studio üzerinden kullanıcı kendi sağlayıcısını seçebilir:
+
+- Google Gemini görev motoru
+- Google Gemini neural TTS
+- OpenAI uyumlu metin veya konuşma uç noktaları
+- Tarayıcı SpeechSynthesis fallback’i
+
+Gemini anahtarı [Google AI Studio](https://aistudio.google.com/apikey) üzerinden oluşturulur. Anahtar yalnız sağlayıcı isteği sırasında aynı-origin Next.js API rotasına gönderilir; sunucuda kalıcı olarak saklanmaz.
+
+## Vercel dağıtımı
+
+1. GitHub deposunu Vercel’e import edin.
+2. Framework preset olarak Next.js seçili kalabilir.
+3. `NEXT_PUBLIC_SUPABASE_URL` ve `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` değişkenlerini Production, Preview ve Development ortamlarına ekleyin.
+4. Deploy sonrasında Vercel adresini Supabase Auth Site URL ve Redirect URL listesine ekleyin.
+
+Sunucuya ait ortak AI anahtarı varsayılan olarak kullanılmaz. Bu tercih ücretsiz kotanın kötüye kullanımını önler.
+
+## Komutlar
+
+| Komut | Açıklama |
+| --- | --- |
+| `npm run dev` | Yerel geliştirme sunucusu |
+| `npm run typecheck` | TypeScript tip kontrolü |
+| `npm run lint` | ESLint kontrolü |
+| `npm run build` | Production build |
+| `npm start` | Production sunucusu |
+
+GitHub Actions her push ve pull request’te `npm ci`, typecheck, lint ve build çalıştırır.
+
+## Proje yapısı
+
+```text
+app/                  Next.js sayfaları, auth callback ve API route'ları
+components/           UI, layout, tutorial, senaryo ve ayar bileşenleri
+data/                 Senaryolar, kelime bankası ve kariyer kataloğu
+features/game/        Zustand oyun store'u
+features/providers/   Tarayıcıya özel sağlayıcı ayarları
+features/sync/        Supabase bulut kayıt koordinasyonu
+lib/providers/        LLM/TTS sağlayıcı adaptörleri
+lib/supabase/         Browser/server istemcileri ve session middleware
+supabase/migrations/  Sürüm kontrollü Postgres şeması ve RLS
+```
+
+## Güvenlik ve gizlilik
+
+- Public istemcide yalnız Supabase publishable key bulunur.
+- Secret/service-role anahtarı uygulama kodunda kullanılmaz.
+- `public.game_saves` üzerinde RLS zorunludur ve anonim role tablo izni verilmez.
+- Provider URL’leri HTTPS ve izinli origin kontrollerinden geçer.
+- Runtime provider sırları hata yanıtlarına veya loglara yazılmaz.
+- Harici AI devre dışı kaldığında uygulama kilitlenmez.
+
+Açık bildirim için [SECURITY.md](SECURITY.md), veri işleme özeti için [PRIVACY.md](PRIVACY.md) dosyasına bakın.
+
+## Katkı
+
+Hata raporları ve geliştirme önerileri memnuniyetle karşılanır. Başlamadan önce [CONTRIBUTING.md](CONTRIBUTING.md) ve [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) dosyalarını okuyun.
+
+## Lisans
+
+Bu proje [MIT Lisansı](LICENSE) ile yayımlanır. Eğitim içeriğini veya uygulamayı gerçek tesis operasyonu ve güvenlik talimatı yerine kullanmayın.

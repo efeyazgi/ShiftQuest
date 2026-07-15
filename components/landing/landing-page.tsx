@@ -91,10 +91,10 @@ export function LandingPage() {
             <a className="transition hover:text-cyan" href="#levels">B1 / B2</a>
           </nav>
           <Link
-            href="/onboarding"
+            href="/auth/login"
             className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.15em] transition hover:border-cyan/40 hover:bg-cyan/10 hover:text-cyan sm:px-5"
           >
-            Enter arcade
+            Giriş yap
             <ArrowDownRight className="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:translate-y-0.5" aria-hidden="true" />
           </Link>
         </div>
@@ -133,11 +133,11 @@ export function LandingPage() {
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/onboarding"
+                href="/auth/sign-up"
                 className="group relative inline-flex min-h-14 items-center justify-center gap-3 overflow-hidden rounded-xl bg-lime px-7 font-display text-xs font-black uppercase tracking-[0.14em] text-ink shadow-[0_0_35px_rgba(199,255,74,0.2)] transition hover:-translate-y-0.5 hover:shadow-[0_0_45px_rgba(199,255,74,0.34)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime"
               >
                 <span className="absolute inset-y-0 -left-16 w-12 -skew-x-12 bg-white/35 blur transition-all duration-500 group-hover:left-[110%]" />
-                Start your shift
+                Ücretsiz hesap aç
                 <Play className="size-4 fill-current" aria-hidden="true" />
               </Link>
               <a
@@ -342,9 +342,9 @@ export function LandingPage() {
           <span className="mx-auto grid size-14 place-items-center rounded-2xl border border-lime/30 bg-lime/10 text-lime shadow-lime"><Gamepad2 className="size-6" /></span>
           <p className="mt-7 text-[10px] font-black uppercase tracking-[0.24em] text-lime">Your next shift starts here</p>
           <h2 className="mt-5 font-display text-4xl font-black uppercase leading-[0.95] tracking-[-0.05em] sm:text-7xl">Ready to make English part of the job?</h2>
-          <p className="mx-auto mt-6 max-w-xl text-base leading-7 text-white/50">Set your level, choose your career route and launch your first mission. No account or API key required.</p>
-          <Link href="/onboarding" className="group mt-9 inline-flex min-h-14 items-center justify-center gap-3 rounded-xl bg-lime px-8 font-display text-xs font-black uppercase tracking-[0.14em] text-ink shadow-[0_0_35px_rgba(199,255,74,0.2)] transition hover:-translate-y-1 hover:shadow-[0_0_45px_rgba(199,255,74,0.32)]">
-            Start your shift <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+          <p className="mx-auto mt-6 max-w-xl text-base leading-7 text-white/50">Set your level, choose your career route and launch your first mission. Your free account keeps progress synced; an AI key stays optional.</p>
+          <Link href="/auth/sign-up" className="group mt-9 inline-flex min-h-14 items-center justify-center gap-3 rounded-xl bg-lime px-8 font-display text-xs font-black uppercase tracking-[0.14em] text-ink shadow-[0_0_35px_rgba(199,255,74,0.2)] transition hover:-translate-y-1 hover:shadow-[0_0_45px_rgba(199,255,74,0.32)]">
+            Create free account <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </motion.div>
       </section>

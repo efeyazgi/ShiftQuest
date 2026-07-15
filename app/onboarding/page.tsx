@@ -27,10 +27,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 
 import { BrandLockup } from "@/components/landing/brand-lockup";
 import { useGameStore } from "@/features/game/store";
+import { useCloudSync } from "@/features/sync/cloud-sync-provider";
 import type { AccentPreference, CareerArea, CEFRLevel } from "@/types";
 
 type DailyGoal = 5 | 10 | 15 | 20;
@@ -134,6 +135,9 @@ export default function OnboardingPage() {
   const router = useRouter();
   const reduceMotion = useReducedMotion();
   const completeOnboarding = useGameStore((state) => state.completeOnboarding);
+  const hydrated = useGameStore((state) => state.hydrated);
+  const profile = useGameStore((state) => state.profile);
+  const { status: cloudStatus } = useCloudSync();
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [submitting, setSubmitting] = useState(false);
@@ -146,6 +150,11 @@ export default function OnboardingPage() {
     avatarId: "nova",
     displayName: "",
   });
+
+  useEffect(() => {
+    const cloudReady = cloudStatus !== "loading" && cloudStatus !== "idle";
+    if (hydrated && cloudReady && profile?.onboardingComplete) router.replace("/map");
+  }, [cloudStatus, hydrated, profile?.onboardingComplete, router]);
 
   const goTo = (nextStep: number) => {
     if (nextStep < 0 || nextStep >= steps.length) return;
@@ -228,8 +237,8 @@ export default function OnboardingPage() {
           </ol>
 
           <div className="mt-10 rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-            <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/35">Local save</p>
-            <div className="mt-2 flex items-center gap-2 text-xs text-white/60"><CheckCircle2 className="size-4 text-lime" /> Progress stays on this device.</div>
+            <p className="text-[9px] font-black uppercase tracking-[0.18em] text-white/35">Cloud save</p>
+            <div className="mt-2 flex items-center gap-2 text-xs text-white/60"><CheckCircle2 className="size-4 text-lime" /> Progress syncs to your account.</div>
           </div>
         </aside>
 

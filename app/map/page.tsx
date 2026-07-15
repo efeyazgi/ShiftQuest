@@ -39,6 +39,7 @@ import { useEffect, useMemo } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { careerRegions, careerTitles, scenarios } from "@/data";
 import { useGameStore } from "@/features/game/store";
+import { useCloudSync } from "@/features/sync/cloud-sync-provider";
 import type { CampusLocation, Scenario, ScenarioCategory } from "@/types";
 
 const locationIcons: Record<CampusLocation, LucideIcon> = {
@@ -192,10 +193,12 @@ export default function CareerMapPage() {
   const profile = useGameStore((state) => state.profile);
   const progress = useGameStore((state) => state.progress);
   const hydrated = useGameStore((state) => state.hydrated);
+  const { status: cloudStatus } = useCloudSync();
+  const cloudLoading = cloudStatus === "loading" || cloudStatus === "idle";
 
   useEffect(() => {
-    if (hydrated && !profile?.onboardingComplete) router.replace("/onboarding");
-  }, [hydrated, profile, router]);
+    if (hydrated && !cloudLoading && !profile?.onboardingComplete) router.replace("/onboarding");
+  }, [cloudLoading, hydrated, profile, router]);
 
   const missionStates = useMemo(() => {
     const completed = new Set(progress.completedScenarioIds);
@@ -235,7 +238,7 @@ export default function CareerMapPage() {
     );
   }, [missionStates, profile]);
 
-  if (!hydrated) return <MapLoading />;
+  if (!hydrated || cloudLoading) return <MapLoading />;
   if (!profile?.onboardingComplete) return <MapLoading />;
 
   const currentTitleIndex = Math.max(0, careerTitles.findIndex((title) => title.id === progress.currentTitleId));

@@ -57,7 +57,7 @@ type OnboardingInput = {
   avatarId: string;
 };
 
-type ImportPayload = {
+export type GameSavePayload = {
   profile: UserProfile | null;
   settings: AppSettings;
   progress: UserProgress;
@@ -65,7 +65,7 @@ type ImportPayload = {
   activities: LearningActivity[];
 };
 
-type GameStore = ImportPayload & {
+type GameStore = GameSavePayload & {
   version: number;
   hydrated: boolean;
   lastResult: MissionResult | null;
@@ -83,7 +83,7 @@ type GameStore = ImportPayload & {
   addStudyMinutes: (minutes: number) => void;
   clearLastResult: () => void;
   resetAll: () => void;
-  importData: (payload: ImportPayload) => boolean;
+  importData: (payload: GameSavePayload) => boolean;
 };
 
 function localDateKey(date = new Date()) {
@@ -349,6 +349,10 @@ export const useGameStore = create<GameStore>()(
 );
 
 export function exportGameData() {
+  return { exportedAt: new Date().toISOString(), version: 1, ...getGameSavePayload() };
+}
+
+export function getGameSavePayload(): GameSavePayload {
   const { profile, settings, progress, attempts, activities } = useGameStore.getState();
-  return { exportedAt: new Date().toISOString(), version: 1, profile, settings, progress, attempts, activities };
+  return { profile, settings, progress, attempts, activities };
 }

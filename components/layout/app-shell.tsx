@@ -9,6 +9,8 @@ import { useGameStore } from "@/features/game/store";
 import { cn } from "@/components/ui/cn";
 import { LinkPendingFeedback } from "@/components/layout/link-pending-feedback";
 import { FirstRunTutorial, requestFirstRunTutorial } from "@/components/tutorial/first-run-tutorial";
+import { AccountMenu } from "@/components/layout/account-menu";
+import { CloudSyncStatus } from "@/features/sync/cloud-sync-provider";
 
 const links = [
   { href: "/map", label: "Kariyer Haritası", short: "Harita", icon: Map },
@@ -31,7 +33,6 @@ const titleLabels: Record<string, string> = {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const profile = useGameStore((state) => state.profile);
   const progress = useGameStore((state) => state.progress);
 
   const openTutorial = () => {
@@ -68,13 +69,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <button type="button" data-tour="tutorial-help" onClick={openTutorial} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[0.04] text-slate-400 transition hover:border-cyan/30 hover:bg-cyan/10 hover:text-cyan" aria-label="Hızlı başlangıç turunu aç" title="Hızlı başlangıç rehberi">
               <CircleHelp className="h-4 w-4" aria-hidden="true" />
             </button>
+            <div className="hidden xl:block"><CloudSyncStatus /></div>
             <div className="hidden items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 md:flex">
               <ShieldCheck className="h-4 w-4 text-cyan" />
               <span className="max-w-36 truncate text-[11px] font-semibold text-slate-300">{titleLabels[progress.currentTitleId] ?? "Engineering Intern"}</span>
             </div>
             <div className="flex items-center gap-1.5 rounded-lg border border-lime/20 bg-lime/10 px-2.5 py-2 font-display text-[11px] font-bold text-lime"><Zap className="h-3.5 w-3.5" />{progress.totalXp.toLocaleString("tr-TR")}</div>
             <div className="flex items-center gap-1.5 rounded-lg border border-amber/20 bg-amber/10 px-2.5 py-2 font-display text-[11px] font-bold text-amber"><Coins className="h-3.5 w-3.5" />{progress.coins}</div>
-            <div className="grid h-9 w-9 place-items-center rounded-lg border border-cyan/25 bg-cyan/10 text-lg" title={profile?.displayName}>{profile?.avatarId?.replace("avatar-", "") === "2" ? "🧑🏽‍🔬" : profile?.avatarId?.replace("avatar-", "") === "3" ? "👩🏻‍💼" : "👷‍♀️"}</div>
+            <AccountMenu />
           </div>
         </div>
       </header>
