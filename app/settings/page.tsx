@@ -36,9 +36,10 @@ import { Button } from "@/components/ui/button";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { Panel } from "@/components/ui/panel";
 import { GAME_TITLE_DISCLAIMER } from "@/data/career";
+import { LEVEL_PROFILES } from "@/data/levels";
 import { exportGameData, useGameStore } from "@/features/game/store";
 import { useCloudSync } from "@/features/sync/cloud-sync-provider";
-import type { AccentPreference, CEFRLevel } from "@/types";
+import { CEFR_LEVELS, type AccentPreference, type CEFRLevel } from "@/types";
 
 type DailyGoal = 5 | 10 | 15 | 20;
 type ToggleIcon = ComponentType<{ className?: string }>;
@@ -101,7 +102,7 @@ function SegmentedChoice<T extends string>({
   return (
     <fieldset>
       <legend className="text-[9px] font-black uppercase tracking-[0.17em] text-slate-500">{label}</legend>
-      <div className="mt-2 grid gap-2" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
+      <div className={options.length > 2 ? "mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4" : "mt-2 grid grid-cols-2 gap-2"}>
         {options.map((option) => {
           const active = value === option.value;
           return (
@@ -271,7 +272,7 @@ export default function SettingsPage() {
               </div>
 
               <div className="mt-5">
-                <SegmentedChoice label="English level" value={level} onChange={setLevel} options={[{ value: "B1", label: "B1", detail: "More support" }, { value: "B2", label: "B2", detail: "More nuance" }]} />
+                <SegmentedChoice label="English level" value={level} onChange={setLevel} options={CEFR_LEVELS.map((value) => ({ value, label: value, detail: LEVEL_PROFILES[value].label }))} />
               </div>
               <div className="mt-5">
                 <SegmentedChoice label="Preferred accent" value={accent} onChange={setAccent} options={[{ value: "american", label: "American", detail: "en-US voice" }, { value: "british", label: "British", detail: "en-GB voice" }]} />

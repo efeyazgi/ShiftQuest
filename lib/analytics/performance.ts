@@ -32,6 +32,7 @@ const ERROR_LABELS: Record<LearningErrorType, string> = {
   tone: "professional tone",
   "word-order": "word order",
   comprehension: "comprehension",
+  communication: "communication goal",
   timeout: "response timing",
 };
 

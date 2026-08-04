@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, CircleHelp, Coins, Map, Settings, ShieldCheck, Vault, Zap } from "lucide-react";
+import { BarChart3, CircleHelp, Coins, Map, Settings, ShieldCheck, UsersRound, Vault, Zap } from "lucide-react";
 import { brand } from "@/config/brand";
 import { useGameStore } from "@/features/game/store";
 import { cn } from "@/components/ui/cn";
@@ -16,6 +16,7 @@ const links = [
   { href: "/map", label: "Kariyer Haritası", short: "Harita", icon: Map },
   { href: "/dashboard", label: "Performans", short: "Analiz", icon: BarChart3 },
   { href: "/word-vault", label: "Word Vault", short: "Vault", icon: Vault },
+  { href: "/social", label: "Crew", short: "Crew", icon: UsersRound },
   { href: "/settings", label: "Ayarlar", short: "Ayarlar", icon: Settings },
 ];
 
@@ -83,7 +84,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <main>{children}</main>
 
-      <nav data-tour="app-navigation" className="fixed inset-x-3 bottom-3 z-50 grid grid-cols-4 rounded-2xl border border-white/10 bg-[#0a1822]/95 p-1.5 shadow-2xl backdrop-blur-xl lg:hidden" aria-label="Mobil menü">
+      <nav data-tour="app-navigation" className="fixed inset-x-3 bottom-3 z-50 grid grid-cols-5 rounded-2xl border border-white/10 bg-[#0a1822]/95 p-1.5 shadow-2xl backdrop-blur-xl lg:hidden" aria-label="Mobil menü">
         {links.map(({ href, label, short, icon: Icon }) => {
           const active = pathname.startsWith(href);
           return (

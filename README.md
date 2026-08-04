@@ -12,17 +12,20 @@ Uygulama bir Next.js App Router projesidir. Hesaplar ve kullanıcıya ait oyun k
 
 ## Öne çıkan özellikler
 
-- B1 ve B2 seviyelerine uyarlanan 12 görevlik kariyer haritası
+- B1, B2, C1 ve C2 seviyelerine uyarlanan 24 görevlik kariyer haritası
 - Diyalog seçimi, cümle kurma, dinleme, eşleştirme, ton kontrolü ve roleplay adımları
 - XP, coin, başarımlar, seri takibi ve bölge kilitleri
 - Leitner kutuları ve ustalık puanlarıyla Word Vault tekrar sistemi
 - Amerikan ve Britanya İngilizcesi ses tercihleri
+- Kanonik görev rubriği, gerçek metin kanıtları ve dört zorunlu başarı koşuluyla AI rol yapma değerlendirmesi
 - Google Gemini ve OpenAI uyumlu görev motoru/TTS desteği
-- Harici AI çalışmadığında deterministik görev fallback’i
+- Harici AI çalışmadığında aynı zorunlu koşulları uygulayan deterministik temel değerlendirme
 - E-posta/şifre hesabı, e-posta doğrulama ve şifre sıfırlama
 - Supabase RLS ile kullanıcıya özel bulut kaydı
 - Çevrimdışı localStorage önbelleği ve yeniden bağlanınca senkronizasyon
 - İlk girişte eski yerel ilerlemeyi hesaba aktarma ve çakışma seçim ekranı
+- Private varsayılanlı sosyal profil, tek kullanımlık arkadaş daveti ve arkadaş kapsamlı liderlik tablosu
+- Kanonik senaryo cevaplarından sunucuda yeniden hesaplanan sosyal XP
 - JSON dışa/içe aktarım, azaltılmış hareket ve yüksek kontrast seçenekleri
 
 ## Mimari
@@ -33,6 +36,7 @@ flowchart LR
     B -->|RLS protected save| D[(Postgres game_saves)]
     B <-->|offline cache| L[(localStorage)]
     B -->|same-origin route| N[Next.js API routes]
+    N -->|server-only secret| S[(Social tables + verified progress)]
     N -->|optional BYOK| G[Gemini or compatible provider]
 ```
 
@@ -70,9 +74,10 @@ copy .env.example .env.local
 ```dotenv
 NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+SUPABASE_SECRET_KEY=sb_secret_...
 ```
 
-`service_role` veya `sb_secret_...` anahtarını hiçbir zaman `NEXT_PUBLIC_` değişkenine koymayın.
+`SUPABASE_SECRET_KEY`, sosyal mutasyonlar ve verified progress için yalnız Next.js sunucusunda kullanılır. Yeni secret key bulunmayan eski projelerde geçici olarak `SUPABASE_SERVICE_ROLE_KEY` kullanılabilir. İki anahtarı da hiçbir zaman `NEXT_PUBLIC_` değişkenine koymayın.
 
 Migration’ı uygulayın:
 
@@ -105,7 +110,17 @@ Uygulama [http://localhost:3000](http://localhost:3000) adresinde açılır.
 5. Değişiklikler 900 ms beklemeli olarak buluta yazılır.
 6. Ağ kesilirse Zustand persist yerel çalışmayı sürdürür; bağlantı dönünce revision kontrollü senkronizasyon yapılır.
 
-Bulut kayıt şeması [migration dosyasında](supabase/migrations/20260715203142_shiftquest_cloud_saves.sql) bulunur.
+Bulut kayıt şeması [cloud-save migration dosyasında](supabase/migrations/20260715203142_shiftquest_cloud_saves.sql), sosyal şema ve RLS kuralları ise [social-learning migration dosyasında](supabase/migrations/20260731120000_social_learning_mvp.sql) bulunur.
+
+## Sosyal öğrenme güvenlik modeli
+
+- Sosyal profil `private` başlar. Profil paylaşımı, leaderboard ve başarım toplamı ayrı opt-in tercihleridir.
+- `careerArea` öğrenme rotasıdır; oyun `currentTitleId` alanı gerçek kariyer seviyesi olarak kullanılmaz. Sosyal profil gerçek seviye için ayrı bir alan tutar.
+- Açık kullanıcı dizini yoktur. Arkadaşlık yalnız SHA-256 hash’i veritabanında tutulan, 24 saatlik ve tek kullanımlık davetle kurulur.
+- Leaderboard yalnız kullanıcının kendisini ve profil + leaderboard paylaşımını açmış, kabul edilmiş, engellenmemiş arkadaşları içerir.
+- Tarayıcı sosyal tablolarda yazma yetkisine sahip değildir. Mutasyonlar kimlik doğrulayan Server Action’lar üzerinden server-only secret ile yapılır.
+- Sosyal XP, `game_saves` veya localStorage toplamından kopyalanmaz. `/api/social/verify-progress`, cevapları kanonik senaryoya göre yeniden değerlendirir ve ayrı verified tablolara yazar. Ağ yoksa mevcut offline oyun ve cloud-save akışı devam eder; yalnız çevrimiçi doğrulanmış tamamlamalar sosyal toplama girer.
+- Sosyal veri sözleşmelerinde e-posta alanı yoktur.
 
 ## İsteğe bağlı AI ve ses
 
@@ -122,8 +137,9 @@ Gemini anahtarı [Google AI Studio](https://aistudio.google.com/apikey) üzerind
 
 1. GitHub deposunu Vercel’e import edin.
 2. Framework preset olarak Next.js seçili kalabilir.
-3. `NEXT_PUBLIC_SUPABASE_URL` ve `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` değişkenlerini Production, Preview ve Development ortamlarına ekleyin.
-4. Deploy sonrasında Vercel adresini Supabase Auth Site URL ve Redirect URL listesine ekleyin.
+3. `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` ve server-only `SUPABASE_SECRET_KEY` değişkenlerini Production, Preview ve Development ortamlarına ekleyin.
+4. `npx supabase db push` ile bekleyen migration’ları bağlı projeye uygulayın; ardından Supabase security ve performance advisor sonuçlarını inceleyin.
+5. Deploy sonrasında Vercel adresini Supabase Auth Site URL ve Redirect URL listesine ekleyin.
 
 Sunucuya ait ortak AI anahtarı varsayılan olarak kullanılmaz. Bu tercih ücretsiz kotanın kötüye kullanımını önler.
 
@@ -148,16 +164,18 @@ data/                 Senaryolar, kelime bankası ve kariyer kataloğu
 features/game/        Zustand oyun store'u
 features/providers/   Tarayıcıya özel sağlayıcı ayarları
 features/sync/        Supabase bulut kayıt koordinasyonu
+lib/social/           Sosyal sözleşmeler, güvenli read modeli ve kanonik doğrulama
 lib/providers/        LLM/TTS sağlayıcı adaptörleri
-lib/supabase/         Browser/server istemcileri ve session middleware
+lib/supabase/         Browser, cookie-scoped server ve server-only admin istemcileri
 supabase/migrations/  Sürüm kontrollü Postgres şeması ve RLS
 ```
 
 ## Güvenlik ve gizlilik
 
 - Public istemcide yalnız Supabase publishable key bulunur.
-- Secret/service-role anahtarı uygulama kodunda kullanılmaz.
+- Secret/service-role anahtarı yalnız `server-only` admin modülünde okunur; istemci bundle’ına veya sosyal yanıtlara girmez.
 - `public.game_saves` üzerinde RLS zorunludur ve anonim role tablo izni verilmez.
+- Tüm sosyal tablolarda RLS açıktır; authenticated role yalnız açıkça tanımlı SELECT grant’leri verilir, INSERT/UPDATE/DELETE yalnız server role’dedir.
 - Provider URL’leri HTTPS ve izinli origin kontrollerinden geçer.
 - Runtime provider sırları hata yanıtlarına veya loglara yazılmaz.
 - Harici AI devre dışı kaldığında uygulama kilitlenmez.

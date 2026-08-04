@@ -1,4 +1,11 @@
-import type { ScenarioCategory, VocabularyItem } from "@/types";
+import type {
+  RoleplayEvaluationContext,
+  RoleplayEvaluationDraft,
+  ScenarioCategory,
+  VocabularyItem,
+} from "@/types";
+import { getLevelProfile } from "@/data/levels";
+import { buildDeterministicRoleplayDraft } from "@/lib/scoring/roleplay-evaluation";
 
 import {
   generatedScenarioSchema,
@@ -489,6 +496,7 @@ export class MockLLMProvider implements LLMProvider {
   ): Promise<GeneratedScenario> {
     const category = chooseCategory(input);
     const kit = CATEGORY_KITS[category];
+    const levelProfile = getLevelProfile(input.level);
     const variant = stableHash(JSON.stringify(input)).toString(36).slice(0, 7);
     const scenarioId = `generated-${category}-${input.level.toLowerCase()}-${variant}`;
     const characterId = `${scenarioId}-character`;
@@ -530,14 +538,16 @@ export class MockLLMProvider implements LLMProvider {
           ttsText: index === 0 ? kit.openingLine : "How would you communicate this clearly?",
         },
         ttsText: item.exampleEn,
-        xp: input.level === "B2" ? 28 : 22,
+        xp: levelProfile.generatedStepXp,
         targetVocabularyIds: [item.id],
         hint: {
           en: "Look for a clear sentence with a calm, collaborative tone.",
           tr:
-            input.level === "B1"
+            levelProfile.turkishHints === "frequent"
               ? "Net, sakin ve iş birliğine açık cümleyi ara."
-              : "Ton ve doğallık farkına dikkat et.",
+              : levelProfile.turkishHints === "on-request"
+                ? "Ton ve doğallık farkına dikkat et."
+                : undefined,
         },
         explanationEn: `“${item.exampleEn}” is clear, natural, and suitable for workplace communication.`,
         explanationTr: `“${item.exampleEn}” net, doğal ve iş yeri iletişimine uygundur.`,
@@ -568,7 +578,7 @@ export class MockLLMProvider implements LLMProvider {
             feedbackTr: "Dil bilgisi ve ifade bu bağlamda doğal değil.",
             naturalAlternative: item.exampleEn,
           },
-          ...(input.level === "B2"
+          ...(levelProfile.optionCount === 4
             ? [
                 {
                   id: `${scenarioId}-step-${index + 1}-formal`,
@@ -599,7 +609,7 @@ export class MockLLMProvider implements LLMProvider {
       level: input.level,
       category,
       location: kit.location,
-      estimatedMinutes: input.level === "B2" ? 8 : 6,
+      estimatedMinutes: levelProfile.estimatedMinutes,
       characters: [
         {
           id: characterId,
@@ -613,8 +623,8 @@ export class MockLLMProvider implements LLMProvider {
       steps,
       targetVocabularyIds: vocabulary.map((item) => item.id),
       targetVocabulary: vocabulary,
-      xpReward: input.level === "B2" ? 180 : 140,
-      coinReward: input.level === "B2" ? 36 : 28,
+      xpReward: levelProfile.generatedScenarioXp,
+      coinReward: levelProfile.generatedCoins,
       unlock: { requiredXp: 0, requiredScenarioIds: [] },
       evaluation: {
         successMessageEn: "Clear communication—your shift is complete.",
@@ -660,7 +670,7 @@ export class MockLLMProvider implements LLMProvider {
     );
     const vocabulary = clampScore(
       48 + Math.min(26, uniqueWords.size * 2) + (workplacePhrase ? 16 : 0) +
-        (input.level === "B2" && words.length > 10 ? 6 : 0),
+        (input.level !== "B1" && words.length > 10 ? 6 : 0),
     );
     const naturalness = clampScore(
       57 + (usefulLength ? 18 : 0) + (collaborative ? 12 : 0) -
@@ -724,5 +734,11 @@ export class MockLLMProvider implements LLMProvider {
       ],
       sessionComplete,
     };
+  }
+
+  async evaluateRoleplay(
+    input: RoleplayEvaluationContext,
+  ): Promise<RoleplayEvaluationDraft> {
+    return buildDeterministicRoleplayDraft(input);
   }
 }

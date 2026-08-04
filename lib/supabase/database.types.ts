@@ -40,12 +40,210 @@ export type Database = {
         };
         Relationships: [];
       };
+      social_profiles: {
+        Row: {
+          achievement_count_opt_in: boolean;
+          career_level: string;
+          created_at: string;
+          display_name: string;
+          industry: string;
+          leaderboard_opt_in: boolean;
+          professional_role: string;
+          profile_visibility: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          achievement_count_opt_in?: boolean;
+          career_level: string;
+          created_at?: string;
+          display_name: string;
+          industry: string;
+          leaderboard_opt_in?: boolean;
+          professional_role: string;
+          profile_visibility?: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          achievement_count_opt_in?: boolean;
+          career_level?: string;
+          created_at?: string;
+          display_name?: string;
+          industry?: string;
+          leaderboard_opt_in?: boolean;
+          professional_role?: string;
+          profile_visibility?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      friendships: {
+        Row: {
+          accepted_at: string;
+          created_at: string;
+          id: string;
+          user_a: string;
+          user_b: string;
+        };
+        Insert: {
+          accepted_at?: string;
+          created_at?: string;
+          id?: string;
+          user_a: string;
+          user_b: string;
+        };
+        Update: {
+          accepted_at?: string;
+          created_at?: string;
+          id?: string;
+          user_a?: string;
+          user_b?: string;
+        };
+        Relationships: [];
+      };
+      social_blocks: {
+        Row: {
+          blocked_id: string;
+          blocker_id: string;
+          created_at: string;
+        };
+        Insert: {
+          blocked_id: string;
+          blocker_id: string;
+          created_at?: string;
+        };
+        Update: {
+          blocked_id?: string;
+          blocker_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      friend_invites: {
+        Row: {
+          accepted_by: string | null;
+          created_at: string;
+          expires_at: string;
+          id: string;
+          inviter_id: string;
+          token_hash: string;
+          used_at: string | null;
+        };
+        Insert: {
+          accepted_by?: string | null;
+          created_at?: string;
+          expires_at: string;
+          id?: string;
+          inviter_id: string;
+          token_hash: string;
+          used_at?: string | null;
+        };
+        Update: {
+          accepted_by?: string | null;
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          inviter_id?: string;
+          token_hash?: string;
+          used_at?: string | null;
+        };
+        Relationships: [];
+      };
+      verified_scenario_completions: {
+        Row: {
+          accuracy: number;
+          category: string;
+          is_boss: boolean;
+          roleplay_completed: boolean;
+          scenario_id: string;
+          user_id: string;
+          verified_at: string;
+          verified_xp: number;
+        };
+        Insert: {
+          accuracy: number;
+          category: string;
+          is_boss: boolean;
+          roleplay_completed: boolean;
+          scenario_id: string;
+          user_id: string;
+          verified_at?: string;
+          verified_xp: number;
+        };
+        Update: {
+          accuracy?: number;
+          category?: string;
+          is_boss?: boolean;
+          roleplay_completed?: boolean;
+          scenario_id?: string;
+          user_id?: string;
+          verified_at?: string;
+          verified_xp?: number;
+        };
+        Relationships: [];
+      };
+      verified_progress: {
+        Row: {
+          completed_scenarios: number;
+          updated_at: string;
+          user_id: string;
+          verified_xp: number;
+        };
+        Insert: {
+          completed_scenarios?: number;
+          updated_at?: string;
+          user_id: string;
+          verified_xp?: number;
+        };
+        Update: {
+          completed_scenarios?: number;
+          updated_at?: string;
+          user_id?: string;
+          verified_xp?: number;
+        };
+        Relationships: [];
+      };
+      verified_achievement_counts: {
+        Row: {
+          updated_at: string;
+          user_id: string;
+          verified_achievement_count: number;
+        };
+        Insert: {
+          updated_at?: string;
+          user_id: string;
+          verified_achievement_count?: number;
+        };
+        Update: {
+          updated_at?: string;
+          user_id?: string;
+          verified_achievement_count?: number;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      accept_friend_invite: {
+        Args: { accepting_user_id: string; invite_token_hash: string };
+        Returns: string;
+      };
+      record_verified_completion: {
+        Args: {
+          completion_accuracy: number;
+          completion_category: string;
+          completion_is_boss: boolean;
+          completion_roleplay_completed: boolean;
+          completion_scenario_id: string;
+          completion_user_id: string;
+          completion_verified_xp: number;
+        };
+        Returns: undefined;
+      };
     };
     Enums: {
       [_ in never]: never;

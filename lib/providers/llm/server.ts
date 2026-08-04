@@ -17,6 +17,12 @@ import type {
   RoleplayResult,
   ScenarioGenerationInput,
 } from "./contracts";
+import type {
+  RoleplayEvaluation,
+  RoleplayEvaluationContext,
+  RoleplayEvaluationDraft,
+} from "@/types";
+import { finalizeRoleplayEvaluation } from "@/lib/scoring/roleplay-evaluation";
 import { MockLLMProvider } from "./mock";
 import { GoogleGeminiLLMProvider } from "./google-gemini";
 import { OpenAICompatibleLLMProvider } from "./openai-compatible";
@@ -160,6 +166,20 @@ export function evaluateFeedback(
     (provider) => provider.evaluateFeedback(input),
     runtimeConfig,
   );
+}
+
+export async function evaluateRoleplay(
+  input: RoleplayEvaluationContext,
+  runtimeConfig?: RuntimeLLMConfig,
+): Promise<LLMRunResult<RoleplayEvaluation>> {
+  const result = await runWithFallback<RoleplayEvaluationDraft>(
+    (provider) => provider.evaluateRoleplay(input),
+    runtimeConfig,
+  );
+  return {
+    ...result,
+    data: finalizeRoleplayEvaluation(input, result.data),
+  };
 }
 
 export function continueRoleplay(

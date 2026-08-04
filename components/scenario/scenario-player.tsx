@@ -21,11 +21,11 @@ import { LoadingScreen } from "@/components/ui/loading-screen";
 import { Panel } from "@/components/ui/panel";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { StepInteraction, type StepAnswer } from "./step-interaction";
+import { RoleplayFeedback } from "./roleplay-feedback";
+import { CharacterAvatar } from "./character-avatar";
 
 const categoryLabels = { office: "Office Communication", production: "Production Floor", meeting: "Meetings", quality: "Quality & Documentation", safety: "Safety Communication", career: "Career & Social" } as const;
 const stepLabels = { "dialogue-choice": "Dialogue Choice", "sentence-builder": "Sentence Builder", "fill-blank": "Fill in the Blank", listening: "Listening Challenge", matching: "Match the Meaning", "tone-check": "Tone Check", "quick-response": "Quick Response", "word-puzzle": "Word Puzzle", roleplay: "AI Roleplay", "boss-battle": "Scenario Boss Battle" } as const;
-const avatarPalette: Record<string, string> = { maya: "👩🏾‍💼", daniel: "🧑🏻‍💼", emre: "👷🏽", lena: "👩🏼‍🏭", sofia: "👩🏻‍💼", kerem: "🧑🏽‍🔬", nora: "👩🏾‍🔬", alex: "🧑🏼‍🏭", sam: "👷🏻", aylin: "👩🏻‍🔧", riley: "🧑🏾‍💼", james: "🧑🏼‍💻" };
-
 function makeId(prefix: string) {
   return globalThis.crypto?.randomUUID?.() ?? `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
@@ -47,7 +47,6 @@ export function ScenarioPlayer({ scenarioId }: { scenarioId: string }) {
   const [feedback, setFeedback] = useState<StepAnswer | null>(null);
   const [hintShown, setHintShown] = useState(false);
   const [hintCount, setHintCount] = useState(0);
-  const [correctCount, setCorrectCount] = useState(0);
   const [combo, setCombo] = useState(0);
   const [earnedXp, setEarnedXp] = useState(0);
   const [sessionAttempts, setSessionAttempts] = useState<AnswerAttempt[]>([]);
@@ -59,7 +58,7 @@ export function ScenarioPlayer({ scenarioId }: { scenarioId: string }) {
 
   const relevantHistory = useMemo(() => previousAttempts.filter((attempt) => attempt.level === profile?.level).slice(-15), [previousAttempts, profile?.level]);
   const recentAccuracy = relevantHistory.length ? relevantHistory.filter((attempt) => attempt.correct).length / relevantHistory.length * 100 : 70;
-  const adaptiveMode = recentAccuracy >= 88 && profile?.level === "B2" ? "challenge" : recentAccuracy < 58 ? "support" : "standard";
+  const adaptiveMode = recentAccuracy >= 88 ? "challenge" : recentAccuracy < 58 ? "support" : "standard";
 
   if (!hydrated || cloudLoading || !profile) return <AppShell><LoadingScreen label="Bulut vardiya profili yükleniyor" /></AppShell>;
   if (!scenario) return <AppShell><div className="mx-auto max-w-2xl px-5 py-24"><Panel className="p-8 text-center"><ShieldAlert className="mx-auto h-10 w-10 text-coral" /><h1 className="mt-4 text-2xl font-black">Görev bulunamadı</h1><p className="mt-2 text-slate-400">Bu görev kampüs kayıtlarında yok veya kaldırılmış.</p><Link href="/map" className="mt-6 inline-flex"><Button>Haritaya dön</Button></Link></Panel></div></AppShell>;
@@ -85,7 +84,6 @@ export function ScenarioPlayer({ scenarioId }: { scenarioId: string }) {
     setFeedback(answer);
     if (answer.correct) {
       const bonus = hintShown ? 0 : 3;
-      setCorrectCount((value) => value + 1);
       setCombo((value) => value + 1);
       setEarnedXp((value) => value + step.xp + bonus);
       playGameSound("correct", settings.audio.soundEffects, settings.audio.volume);
@@ -101,18 +99,25 @@ export function ScenarioPlayer({ scenarioId }: { scenarioId: string }) {
       setStepIndex((index) => index + 1); setFeedback(null); setHintShown(false); stepStartedAt.current = Date.now();
       return;
     }
-    const totalCorrect = correctCount;
+    const completedAttempts = sessionAttempts;
+    const totalCorrect = completedAttempts.filter((attempt) => attempt.correct).length;
     const accuracy = Math.round(totalCorrect / scenario.steps.length * 100);
     const xpEarned = Math.round(scenario.xpReward * (0.65 + accuracy / 285)) + earnedXp;
     const coinsEarned = Math.max(1, Math.round(scenario.coinReward * (0.6 + accuracy / 250)));
-    const wrongVocabulary = [...new Set(sessionAttempts.filter((attempt) => !attempt.correct).flatMap((attempt) => attempt.vocabularyIds))];
+    const wrongVocabulary = [...new Set(completedAttempts.filter((attempt) => !attempt.correct).flatMap((attempt) => attempt.vocabularyIds))];
     const result: MissionResult = {
       scenarioId: scenario.id, completedAt: new Date().toISOString(), score: totalCorrect * 1_000 + earnedXp,
       accuracy, correctAnswers: totalCorrect, totalSteps: scenario.steps.length, xpEarned, coinsEarned,
       hintsUsed: hintCount, firstTryCorrect: totalCorrect, newVocabularyIds: scenario.targetVocabularyIds,
-      reviewVocabularyIds: wrongVocabulary, attempts: sessionAttempts,
+      reviewVocabularyIds: wrongVocabulary, attempts: completedAttempts,
     };
     completeScenario(result);
+    void fetch("/api/social/verify-progress", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scenarioId: result.scenarioId, attempts: result.attempts }),
+      keepalive: true,
+    }).catch(() => undefined);
     playGameSound("complete", settings.audio.soundEffects, settings.audio.volume);
     router.push("/results");
   };
@@ -137,7 +142,7 @@ export function ScenarioPlayer({ scenarioId }: { scenarioId: string }) {
               </div>
             </Panel>
             <div className="flex flex-col justify-center gap-5">
-              <Panel label="Crew channel"><div className="p-5 pt-4"><div className="space-y-3">{scenario.characters.map((member) => <div key={member.id} className="flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.025] p-3"><div className="grid h-11 w-11 place-items-center rounded-lg bg-cyan/10 text-2xl">{avatarPalette[member.avatar] ?? "🧑‍💼"}</div><div><p className="text-sm font-bold text-white">{member.name}</p><p className="text-[11px] text-slate-500">{member.role}</p></div><span className="ml-auto h-2 w-2 rounded-full bg-lime shadow-lime" /></div>)}</div></div></Panel>
+              <Panel label="Crew channel"><div className="p-5 pt-4"><div className="space-y-3">{scenario.characters.map((member) => <div key={member.id} className="flex min-w-0 items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.025] p-3"><CharacterAvatar character={member} online /><div className="min-w-0"><p className="truncate text-sm font-bold text-white">{member.name}</p><p className="truncate text-[11px] text-slate-500">{member.role}</p></div></div>)}</div></div></Panel>
               <Panel label="Target vocabulary"><div className="p-5 pt-4"><div className="flex flex-wrap gap-2">{scenario.targetVocabularyIds.map(getVocabularyById).filter(Boolean).map((word) => <span key={word!.id} className="rounded-lg border border-cyan/15 bg-cyan/5 px-2.5 py-1.5 text-xs text-cyan">{word!.term}</span>)}</div></div></Panel>
               {scenario.communicationOnly ? <div className="flex gap-3 rounded-xl border border-amber/20 bg-amber/[0.08] p-4 text-xs leading-5 text-amber"><ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" /> Bu görev yalnızca güvenlik iletişimi pratiğidir; operasyon veya ekipman talimatı içermez.</div> : null}
             </div>
@@ -158,7 +163,7 @@ export function ScenarioPlayer({ scenarioId }: { scenarioId: string }) {
 
         <div className="grid gap-5 lg:grid-cols-[clamp(300px,22vw,380px)_minmax(0,1fr)] xl:gap-6">
           <aside className="space-y-4">
-            <Panel className="overflow-hidden"><div className="relative grid min-h-52 place-items-center bg-gradient-to-b from-cyan/10 to-transparent p-5"><div className="absolute inset-0 bg-[url('/pipeline-pattern.svg')] bg-cover opacity-20" /><motion.div key={character?.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="relative grid h-28 w-28 place-items-center rounded-3xl border border-cyan/25 bg-[#102b39] text-6xl shadow-[0_0_40px_rgba(85,246,255,.12)]">{avatarPalette[character?.avatar ?? ""] ?? "🧑‍💼"}<span className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-4 border-panel bg-lime" /></motion.div></div><div className="border-t border-white/[0.08] p-4 text-center"><p className="font-bold text-white">{character?.name ?? "ShiftQuest AI"}</p><p className="mt-1 text-xs text-cyan">{character?.role ?? "Mission System"}</p></div></Panel>
+            <Panel className="overflow-hidden"><div className="relative grid min-h-52 place-items-center bg-gradient-to-b from-cyan/10 to-transparent p-5"><div className="absolute inset-0 bg-[url('/pipeline-pattern.svg')] bg-cover opacity-20" />{character ? <motion.div key={character.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="relative shadow-[0_0_40px_rgba(85,246,255,.12)]"><CharacterAvatar character={character} size="hero" online /></motion.div> : null}</div><div className="border-t border-white/[0.08] p-4 text-center"><p className="font-bold text-white">{character?.name ?? "ShiftQuest AI"}</p><p className="mt-1 text-xs text-cyan">{character?.role ?? "Mission System"}</p></div></Panel>
             <Panel label="Adaptive difficulty"><div className="p-4 pt-3"><div className="flex items-start gap-3">{adaptiveMode === "support" ? <BookOpen className="h-5 w-5 text-lime" /> : adaptiveMode === "challenge" ? <Target className="h-5 w-5 text-coral" /> : <Bot className="h-5 w-5 text-cyan" />}<div><p className="text-xs font-bold text-white">{adaptiveMode === "support" ? "Support mode" : adaptiveMode === "challenge" ? "Challenge mode" : "Balanced mode"}</p><p className="mt-1 text-[11px] leading-4 text-slate-500">{adaptiveMode === "support" ? "Türkçe ipuçları ve kelime desteği etkin." : adaptiveMode === "challenge" ? "İpuçları azaltıldı; yakın seçeneklere dikkat et." : "Zorluk son performansına uygun."}</p></div></div></div></Panel>
           </aside>
 
@@ -171,9 +176,9 @@ export function ScenarioPlayer({ scenarioId }: { scenarioId: string }) {
               <div className="mb-6 rounded-xl border border-white/10 bg-black/20 p-4"><div className="mb-2 flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-slate-500"><MessageSquareText className="h-3.5 w-3.5" /> Görev</div><p className="text-base font-semibold leading-7 text-white"><InteractiveText text={step.prompt} vocabularyIds={step.targetVocabularyIds} scenarioId={scenario.id} /></p>{profile.level === "B1" || adaptiveMode === "support" ? <p className="mt-2 text-sm text-slate-500">{step.promptTr}</p> : null}</div>
 
               <AnimatePresence mode="wait">
-                {!feedback ? <motion.div key="game" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}><StepInteraction step={step} onAnswer={answerStep} /><div className="mt-5 border-t border-white/[0.08] pt-4"><button disabled={hintShown} onClick={() => { if (!hintShown) { setHintShown(true); setHintCount((count) => count + 1); } }} className="flex items-center gap-2 text-xs font-semibold text-amber transition hover:text-white disabled:cursor-default disabled:text-slate-500"><Lightbulb className="h-4 w-4" /> {hintShown ? step.hint.tr ?? step.hint.en : "İpucu kullan"}</button></div></motion.div> : (
+                {!feedback ? <motion.div key="game" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}><StepInteraction scenarioId={scenario.id} step={step} onAnswer={answerStep} /><div className="mt-5 border-t border-white/[0.08] pt-4"><button disabled={hintShown} onClick={() => { if (!hintShown) { setHintShown(true); setHintCount((count) => count + 1); } }} className="flex items-center gap-2 text-xs font-semibold text-amber transition hover:text-white disabled:cursor-default disabled:text-slate-500"><Lightbulb className="h-4 w-4" /> {hintShown ? step.hint.tr ?? step.hint.en : "İpucu kullan"}</button></div></motion.div> : (
                   <motion.div key="feedback" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className={cn("rounded-2xl border p-5", feedback.correct ? "border-lime/30 bg-lime/[0.07]" : "border-coral/30 bg-coral/[0.07]")}>
-                    <div className="flex items-start gap-3">{feedback.correct ? <CheckCircle2 className="mt-0.5 h-6 w-6 shrink-0 text-lime" /> : <XCircle className="mt-0.5 h-6 w-6 shrink-0 text-coral" />}<div className="flex-1"><h3 className={cn("font-display text-sm font-black uppercase tracking-[0.12em]", feedback.correct ? "text-lime" : "text-coral")}>{feedback.correct ? "Clear communication!" : "Not quite — let’s tune it"}</h3><p className="mt-2 text-sm leading-6 text-slate-300">{feedback.feedback || (feedback.correct ? step.explanationTr : step.explanationTr)}</p>{!feedback.correct ? <div className="mt-3 rounded-lg border border-white/10 bg-black/20 p-3"><p className="text-[10px] uppercase tracking-[0.17em] text-slate-500">Neden?</p><p className="mt-1.5 text-sm text-slate-300">{step.explanationTr}</p></div> : null}{feedback.naturalAlternative ? <div className="mt-3 rounded-lg border border-cyan/15 bg-cyan/5 p-3"><p className="text-[10px] uppercase tracking-[0.17em] text-cyan">Daha doğal ifade</p><p className="mt-1.5 text-sm font-medium text-white">{feedback.naturalAlternative}</p></div> : null}</div></div>
+                    <div className="flex items-start gap-3">{feedback.correct ? <CheckCircle2 className="mt-0.5 h-6 w-6 shrink-0 text-lime" /> : <XCircle className="mt-0.5 h-6 w-6 shrink-0 text-coral" />}<div className="flex-1"><h3 className={cn("font-display text-sm font-black uppercase tracking-[0.12em]", feedback.correct ? "text-lime" : "text-coral")}>{feedback.correct ? "Clear communication!" : "Not quite — let’s tune it"}</h3><p className="mt-2 text-sm leading-6 text-slate-300">{feedback.feedback || step.explanationTr}</p>{feedback.roleplayEvaluation ? <RoleplayFeedback evaluation={feedback.roleplayEvaluation} source={feedback.evaluationSource ?? "mock"} /> : <>{!feedback.correct ? <div className="mt-3 rounded-lg border border-white/10 bg-black/20 p-3"><p className="text-[10px] uppercase tracking-[0.17em] text-slate-500">Neden?</p><p className="mt-1.5 text-sm text-slate-300">{step.explanationTr}</p></div> : null}{feedback.naturalAlternative ? <div className="mt-3 rounded-lg border border-cyan/15 bg-cyan/5 p-3"><p className="text-[10px] uppercase tracking-[0.17em] text-cyan">Daha doğal ifade</p><p className="mt-1.5 text-sm font-medium text-white">{feedback.naturalAlternative}</p></div> : null}</>}</div></div>
                     <div className="mt-5 flex justify-end"><Button onClick={nextStep}>{stepIndex === scenario.steps.length - 1 ? "Görevi tamamla" : "Sonraki aşama"} <ArrowRight className="h-4 w-4" /></Button></div>
                   </motion.div>
                 )}

@@ -38,6 +38,7 @@ import { useEffect, useMemo } from "react";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { careerRegions, careerTitles, scenarios } from "@/data";
+import { getLevelProfile } from "@/data/levels";
 import { useGameStore } from "@/features/game/store";
 import { useCloudSync } from "@/features/sync/cloud-sync-provider";
 import type { CampusLocation, Scenario, ScenarioCategory } from "@/types";
@@ -135,6 +136,7 @@ function MissionCard({
   isDaily: boolean;
 }) {
   const category = categoryMeta[scenario.category];
+  const levelProfile = getLevelProfile(scenario.level);
   const content = (
     <>
       <div className="flex items-start justify-between gap-4">
@@ -145,7 +147,7 @@ function MissionCard({
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <span className={`rounded-full border px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.14em] ${state.unlocked || state.completed ? category.className : "border-white/10 bg-white/[0.025] text-white/25"}`}>{category.label}</span>
-              <span className={`rounded-full border px-2 py-1 font-display text-[8px] font-black ${scenario.level === "B1" ? "border-cyan/20 bg-cyan/[0.06] text-cyan/70" : "border-lime/20 bg-lime/[0.06] text-lime/70"}`}>{scenario.level}</span>
+              <span className={`rounded-full border px-2 py-1 font-display text-[8px] font-black ${levelProfile.badgeClassName}`}>{scenario.level}</span>
               {scenario.isBoss && <span className="flex items-center gap-1 rounded-full border border-coral/25 bg-coral/10 px-2 py-1 text-[8px] font-black uppercase tracking-[0.12em] text-coral"><Crown className="size-2.5" /> Boss</span>}
               {recommended && !state.completed && <span className="flex items-center gap-1 text-[8px] font-black uppercase tracking-[0.12em] text-amber"><Star className="size-2.5 fill-current" /> Your route</span>}
               {isDaily && !state.completed && <span className="flex items-center gap-1 text-[8px] font-black uppercase tracking-[0.12em] text-lime"><Sparkles className="size-2.5" /> Daily pick</span>}

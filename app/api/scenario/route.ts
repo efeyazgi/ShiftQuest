@@ -7,6 +7,7 @@ import {
 } from "@/lib/providers/llm";
 import { generateScenario } from "@/lib/providers/llm/server";
 import { runtimeLLMConfigSchema } from "@/lib/providers/runtime-config";
+import { CEFR_LEVELS } from "@/types";
 import {
   assertRuntimeProviderRequestAllowed,
   RuntimeProviderConfigError,
@@ -16,7 +17,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const scenarioQuerySchema = z.object({
-  level: z.enum(["B1", "B2"]).default("B1"),
+  level: z.enum(CEFR_LEVELS).default("B1"),
   category: scenarioCategorySchema.optional(),
   weakVocabulary: z.array(z.string().trim().min(1).max(80)).max(12).default([]),
 });

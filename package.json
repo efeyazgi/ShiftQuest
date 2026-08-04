@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run && npm run test:social",
+    "test:social": "node --experimental-strip-types --test lib/achievements/evaluator.test.mjs lib/social/canonical-answer.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -34,7 +36,8 @@
     "eslint-config-next": "^15.5.0",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.10"
   },
   "overrides": {
     "postcss": "$postcss"

@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
 import { BrandLockup } from "@/components/landing/brand-lockup";
+import { authErrorMessage } from "@/lib/supabase/auth-error";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/client";
 
@@ -48,16 +49,6 @@ const copy: Record<AuthMode, { eyebrow: string; title: string; description: stri
 
 function safeNext(value?: string) {
   return value?.startsWith("/") && !value.startsWith("//") ? value : "/map";
-}
-
-function messageForError(message: string) {
-  const normalized = message.toLowerCase();
-  if (normalized.includes("invalid login credentials")) return "E-posta veya şifre hatalı.";
-  if (normalized.includes("email not confirmed")) return "Önce e-posta adresini doğrulamalısın.";
-  if (normalized.includes("already registered")) return "Bu e-posta ile zaten bir hesap bulunuyor.";
-  if (normalized.includes("password")) return "Şifre en az 8 karakter olmalı.";
-  if (normalized.includes("rate limit")) return "Çok fazla deneme yapıldı. Birkaç dakika sonra tekrar dene.";
-  return "İşlem tamamlanamadı. Bağlantını kontrol edip tekrar dene.";
 }
 
 export function AuthForm({
@@ -139,7 +130,7 @@ export function AuthForm({
         window.setTimeout(() => router.replace("/map"), 900);
       }
     } catch (caught) {
-      setError(messageForError(caught instanceof Error ? caught.message : "unknown"));
+      setError(authErrorMessage(caught));
     } finally {
       setBusy(false);
     }

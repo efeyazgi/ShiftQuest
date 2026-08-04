@@ -5,12 +5,15 @@ import type { SafeProviderError } from "../errors";
 import type {
   CEFRLevel,
   RoleplayFeedback,
+  RoleplayEvaluationContext,
+  RoleplayEvaluationDraft,
   Scenario,
   ScenarioCategory,
   VocabularyItem,
 } from "@/types";
+import { CEFR_LEVELS } from "@/types";
 
-export const cefrLevelSchema = z.enum(["B1", "B2"]);
+export const cefrLevelSchema = z.enum(CEFR_LEVELS);
 export const scenarioCategorySchema = z.enum([
   "office",
   "production",
@@ -57,6 +60,7 @@ const vocabularySchema = z.object({
   level: cefrLevelSchema,
   tags: z.array(safeLine(40)).max(8),
   audioText: z.string().trim().max(200).optional(),
+  acceptedForms: z.array(safeLine(120)).max(12).optional(),
 });
 
 const characterSchema = z.object({
@@ -228,6 +232,67 @@ export type FeedbackResult = RoleplayFeedback & {
   strengths: string[];
 };
 
+export const roleplayEvaluationRequestSchema = z.object({
+  scenarioId: safeLine(160),
+  stepId: safeLine(160),
+  message: safeLine(2_000),
+});
+
+export type RoleplayEvaluationRequest = z.infer<
+  typeof roleplayEvaluationRequestSchema
+>;
+
+const evidenceLine = z.string().trim().max(500);
+
+export const roleplayEvaluationDraftSchema = z.object({
+  goalAchieved: z.boolean(),
+  goalEvidence: evidenceLine,
+  criteria: z
+    .array(
+      z.object({
+        criterionId: safeLine(160),
+        score: scoreSchema,
+        met: z.boolean(),
+        evidenceQuote: evidenceLine,
+        feedbackTr: safeLine(500),
+      }),
+    )
+    .max(8),
+  targetVocabulary: z
+    .array(
+      z.object({
+        vocabularyId: safeLine(160),
+        usedCorrectly: z.boolean(),
+        evidenceQuote: evidenceLine,
+        feedbackTr: safeLine(500),
+      }),
+    )
+    .max(12),
+  strengths: z
+    .array(
+      z.object({
+        labelTr: safeLine(300),
+        evidenceQuote: evidenceLine,
+      }),
+    )
+    .max(4),
+  improvements: z
+    .array(
+      z.object({
+        issueTr: safeLine(400),
+        suggestionEn: safeLine(700),
+        reasonTr: safeLine(500),
+      }),
+    )
+    .max(6),
+  polishedAnswer: safeLine(1_500),
+  summaryTr: safeLine(700),
+});
+
+export type ProviderRoleplayEvaluation = z.infer<
+  typeof roleplayEvaluationDraftSchema
+>;
+
 export const roleplayInputSchema = feedbackInputSchema.extend({
   history: z
     .array(
@@ -257,6 +322,9 @@ export interface LLMProvider {
   testConnection(): Promise<void>;
   generateScenario(input: ScenarioGenerationInput): Promise<GeneratedScenario>;
   evaluateFeedback(input: FeedbackInput): Promise<FeedbackResult>;
+  evaluateRoleplay(
+    input: RoleplayEvaluationContext,
+  ): Promise<RoleplayEvaluationDraft>;
   continueRoleplay(input: RoleplayInput): Promise<RoleplayResult>;
 }
 

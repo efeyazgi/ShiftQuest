@@ -32,7 +32,8 @@ import { type FormEvent, useEffect, useState } from "react";
 import { BrandLockup } from "@/components/landing/brand-lockup";
 import { useGameStore } from "@/features/game/store";
 import { useCloudSync } from "@/features/sync/cloud-sync-provider";
-import type { AccentPreference, CareerArea, CEFRLevel } from "@/types";
+import { LEVEL_PROFILES } from "@/data/levels";
+import { CEFR_LEVELS, type AccentPreference, type CareerArea, type CEFRLevel } from "@/types";
 
 type DailyGoal = 5 | 10 | 15 | 20;
 type IconType = LucideIcon;
@@ -53,6 +54,20 @@ const steps = [
   { short: "Goal", label: "Daily target", icon: Clock3 },
   { short: "ID", label: "Engineer ID", icon: UserRound },
 ] as const;
+
+const levelIcons: Record<CEFRLevel, IconType> = {
+  B1: Building2,
+  B2: Zap,
+  C1: Sparkles,
+  C2: Gauge,
+};
+
+const levelDetails: Record<CEFRLevel, string> = {
+  B1: "3 choices · frequent hints · slower audio",
+  B2: "4 choices · fewer hints · nuanced tone",
+  C1: "implicit meaning · diplomatic language · long responses",
+  C2: "register control · synthesis · executive precision",
+};
 
 const careerOptions: Array<{
   id: CareerArea;
@@ -271,8 +286,10 @@ export default function OnboardingPage() {
                       <h2 className="mt-3 font-display text-3xl font-black uppercase leading-none tracking-[-0.035em] sm:text-5xl">Where should we set the difficulty?</h2>
                       <p className="mt-4 max-w-xl text-sm leading-6 text-white/45">This changes dialogue length, hints and how close the answer choices feel. You can change it later.</p>
                       <div className="mt-8 grid gap-4 md:grid-cols-2">
-                        <ChoiceCard checked={form.level === "B1"} name="level" value="B1" onChange={() => setForm((current) => ({ ...current, level: "B1" }))} icon={Building2} eyebrow="Supported route" title="B1 · Intermediate" description="Clear, shorter conversations with extra Turkish support." detail="3 choices · frequent hints · slower audio available" />
-                        <ChoiceCard checked={form.level === "B2"} name="level" value="B2" onChange={() => setForm((current) => ({ ...current, level: "B2" }))} icon={Zap} eyebrow="Challenge route" title="B2 · Upper intermediate" description="More natural dialogue, close choices and nuanced tone." detail="4 choices · fewer hints · complex roleplay" />
+                        {CEFR_LEVELS.map((level) => {
+                          const profile = LEVEL_PROFILES[level];
+                          return <ChoiceCard key={level} checked={form.level === level} name="level" value={level} onChange={() => setForm((current) => ({ ...current, level }))} icon={levelIcons[level]} eyebrow={profile.routeLabel} title={`${level} · ${profile.label}`} description={profile.description} detail={levelDetails[level]} />;
+                        })}
                       </div>
                     </fieldset>
                   )}

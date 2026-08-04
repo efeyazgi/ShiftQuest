@@ -9,6 +9,8 @@ ShiftQuest is an open-source educational beta. This notice describes the data ha
 - Account e-mail address and authentication records, handled by Supabase Auth.
 - Player profile choices such as display name, English level, career route, voice preference and daily goal.
 - Game progress such as XP, coins, answers, mission history, review schedule and Word Vault mastery.
+- Optional social profile fields (display name, industry, professional role and real career level), friendship/block state and explicit sharing preferences.
+- Server-recomputed social score and achievement count. Social responses never include the account e-mail address.
 - A local synchronization marker used to reconcile the browser cache with the cloud save.
 
 ## Browser-only data

@@ -26,6 +26,7 @@ import {
   useGameStore,
 } from "@/features/game/store";
 import { useProviderSettingsStore } from "@/features/providers/store";
+import { saveFingerprint } from "@/features/sync/save-fingerprint";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import type { Database, Json } from "@/lib/supabase/database.types";
@@ -67,10 +68,6 @@ const SAVE_VERSION = 1;
 
 function metadataKey(userId: string) {
   return `${META_PREFIX}${userId}`;
-}
-
-function fingerprint(payload: GameSavePayload) {
-  return JSON.stringify(payload);
 }
 
 function readMetadata(userId: string): SyncMetadata | null {
@@ -144,7 +141,7 @@ export function CloudSyncProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const recordSynced = useCallback((userId: string, row: Pick<SaveRow, "revision" | "updated_at">, payload: GameSavePayload) => {
-    const localFingerprint = fingerprint(payload);
+    const localFingerprint = saveFingerprint(payload);
     cloudExistsRef.current = true;
     cloudRevisionRef.current = row.revision;
     lastFingerprintRef.current = localFingerprint;
@@ -222,12 +219,12 @@ export function CloudSyncProvider({ children }: { children: ReactNode }) {
 
   const startWatching = useCallback(() => {
     unsubscribeStoreRef.current?.();
-    lastFingerprintRef.current = fingerprint(getGameSavePayload());
+    lastFingerprintRef.current = saveFingerprint(getGameSavePayload());
     readyRef.current = true;
     unsubscribeStoreRef.current = useGameStore.subscribe(() => {
       if (!readyRef.current) return;
       const payload = getGameSavePayload();
-      const nextFingerprint = fingerprint(payload);
+      const nextFingerprint = saveFingerprint(payload);
       if (nextFingerprint === lastFingerprintRef.current) return;
       lastFingerprintRef.current = nextFingerprint;
       if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
@@ -262,7 +259,7 @@ export function CloudSyncProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
 
       const local = getGameSavePayload();
-      const localFingerprint = fingerprint(local);
+      const localFingerprint = saveFingerprint(local);
       const metadata = readMetadata(activeUser.id);
 
       if (!cloud) {
@@ -278,7 +275,7 @@ export function CloudSyncProvider({ children }: { children: ReactNode }) {
       if (!isGameSavePayload(cloud.state)) throw new Error("Bulut kaydının biçimi geçersiz.");
       cloudExistsRef.current = true;
       cloudRevisionRef.current = cloud.revision;
-      const cloudFingerprint = fingerprint(cloud.state);
+      const cloudFingerprint = saveFingerprint(cloud.state);
 
       if (cloudFingerprint === localFingerprint) {
         recordSynced(activeUser.id, cloud, local);

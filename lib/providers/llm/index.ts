@@ -3,6 +3,8 @@ export {
   feedbackInputSchema,
   feedbackSchema,
   generatedScenarioSchema,
+  roleplayEvaluationDraftSchema,
+  roleplayEvaluationRequestSchema,
   roleplayInputSchema,
   roleplayResultSchema,
   scenarioCategorySchema,
@@ -16,6 +18,7 @@ export type {
   LLMRunResult,
   ProviderSource,
   RoleplayInput,
+  RoleplayEvaluationRequest,
   RoleplayResult,
   ScenarioGenerationInput,
 } from "./contracts";

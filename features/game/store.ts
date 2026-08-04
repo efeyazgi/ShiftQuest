@@ -15,6 +15,9 @@ import type {
   VocabularyProgress,
 } from "@/types";
 import { careerTitles } from "@/data/career";
+import { achievements } from "@/data/achievements";
+import { buildAchievementFacts } from "@/lib/achievements/from-game";
+import { evaluateAchievements } from "@/lib/achievements/evaluator";
 
 const STORAGE_KEY = "shiftquest-game-v1";
 
@@ -123,14 +126,31 @@ function titleForXp(xp: number) {
   return [...careerTitles].reverse().find((title) => xp >= title.minimumXp)?.id ?? "engineering-intern";
 }
 
-function achievementIds(progress: UserProgress, result: MissionResult) {
+function achievementIds(
+  progress: UserProgress,
+  attempts: readonly AnswerAttempt[],
+  activities: readonly LearningActivity[],
+) {
+  const evaluations = evaluateAchievements(
+    buildAchievementFacts(progress, attempts, activities),
+    achievements,
+  );
   const unlocked = new Set(progress.unlockedAchievementIds);
-  unlocked.add("first-shift");
-  if (result.accuracy >= 90) unlocked.add("clear-communicator");
-  if (result.hintsUsed === 0) unlocked.add("no-hint-needed");
-  if (progress.streakDays >= 7) unlocked.add("seven-day-streak");
-  if (Object.keys(progress.vocabularyProgress).length >= 20) unlocked.add("vocabulary-builder");
-  return [...unlocked];
+  for (const evaluation of evaluations) {
+    if (evaluation.active && evaluation.unlocked) {
+      unlocked.add(evaluation.achievement.id);
+    }
+  }
+
+  // Repair the two historically over-eager evaluators from existing saves.
+  for (const correctedId of ["no-hint-needed", "vocabulary-builder"]) {
+    const evaluation = evaluations.find((item) => item.achievement.id === correctedId);
+    if (evaluation && !evaluation.unlocked) unlocked.delete(correctedId);
+  }
+
+  return achievements
+    .map((achievement) => achievement.id)
+    .filter((achievementId) => unlocked.has(achievementId));
 }
 
 export const useGameStore = create<GameStore>()(
@@ -284,7 +304,6 @@ export const useGameStore = create<GameStore>()(
               },
             },
           };
-          nextProgress.unlockedAchievementIds = achievementIds(nextProgress, result);
           const activity: LearningActivity = {
             id: globalThis.crypto?.randomUUID?.() ?? `activity-${Date.now()}`,
             type: "scenario-complete",
@@ -294,9 +313,15 @@ export const useGameStore = create<GameStore>()(
             scenarioId: result.scenarioId,
             metadata: { accuracy: result.accuracy, hintsUsed: result.hintsUsed },
           };
+          const activities = [...state.activities, activity].slice(-1_000);
+          nextProgress.unlockedAchievementIds = achievementIds(
+            nextProgress,
+            state.attempts,
+            activities,
+          );
           return {
             progress: nextProgress,
-            activities: [...state.activities, activity].slice(-1_000),
+            activities,
             lastResult: result,
           };
         }),

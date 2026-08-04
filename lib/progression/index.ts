@@ -1,4 +1,5 @@
 import { careerRegions, careerTitles, GAME_TITLE_DISCLAIMER } from "@/data/career";
+import { getLevelProfile } from "@/data/levels";
 import type {
   AnswerAttempt,
   CampusLocation,
@@ -99,26 +100,17 @@ export function calculateAdaptiveDifficulty(
     "correct" | "attemptNumber" | "hintUsed"
   >[],
 ): AdaptiveDifficulty {
+  const profile = getLevelProfile(level);
   if (recentAttempts.length === 0) {
-    return level === "B1"
-      ? {
-          level,
-          support: "high",
-          optionCount: 3,
-          sentenceLength: "short",
-          turkishHints: "frequent",
-          distractorSimilarity: "low",
-          introduceLessCommonVocabulary: false,
-        }
-      : {
-          level,
-          support: "standard",
-          optionCount: 4,
-          sentenceLength: "medium",
-          turkishHints: "on-request",
-          distractorSimilarity: "medium",
-          introduceLessCommonVocabulary: true,
-        };
+    return {
+      level,
+      support: level === "B1" ? "high" : "standard",
+      optionCount: profile.optionCount,
+      sentenceLength: profile.sentenceLength,
+      turkishHints: profile.turkishHints,
+      distractorSimilarity: profile.distractorSimilarity,
+      introduceLessCommonVocabulary: level !== "B1",
+    };
   }
 
   const accuracy =
@@ -161,11 +153,11 @@ export function calculateAdaptiveDifficulty(
   return {
     level,
     support: "standard",
-    optionCount: level === "B1" ? 3 : 4,
-    sentenceLength: level === "B1" ? "short" : "medium",
-    turkishHints: level === "B1" ? "frequent" : "on-request",
-    distractorSimilarity: "medium",
-    introduceLessCommonVocabulary: level === "B2",
+    optionCount: profile.optionCount,
+    sentenceLength: profile.sentenceLength,
+    turkishHints: profile.turkishHints,
+    distractorSimilarity: profile.distractorSimilarity,
+    introduceLessCommonVocabulary: level !== "B1",
   };
 }
 

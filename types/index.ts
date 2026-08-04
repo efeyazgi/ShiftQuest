@@ -1,6 +1,7 @@
 /** Shared domain contracts for ShiftQuest's static and persisted data. */
 
-export type CEFRLevel = "B1" | "B2";
+export const CEFR_LEVELS = ["B1", "B2", "C1", "C2"] as const;
+export type CEFRLevel = (typeof CEFR_LEVELS)[number];
 export type AccentPreference = "american" | "british";
 export type CareerArea =
   | "general"
@@ -54,6 +55,7 @@ export interface VocabularyItem {
   level: CEFRLevel;
   tags: string[];
   audioText?: string;
+  acceptedForms?: string[];
 }
 
 export interface ScenarioCharacter {
@@ -303,6 +305,98 @@ export interface RoleplayFeedback {
   corrections: Array<{ original: string; suggestion: string; reason: string }>;
 }
 
+export type RoleplayLengthStatus = "too-short" | "within-range" | "too-long";
+
+export interface RoleplayVocabularyTarget {
+  id: string;
+  term: string;
+  acceptedForms: string[];
+}
+
+export interface RoleplayEvaluationContext {
+  scenarioId: string;
+  stepId: string;
+  message: string;
+  level: CEFRLevel;
+  role: string;
+  openingLine: string;
+  userGoal: string;
+  minimumWords: number;
+  maximumWords: number;
+  successCriteria: RoleplayCriterion[];
+  targetVocabulary: RoleplayVocabularyTarget[];
+  sampleAnswer: string;
+}
+
+export interface RoleplayCriterionAssessmentDraft {
+  criterionId: string;
+  score: number;
+  met: boolean;
+  evidenceQuote: string;
+  feedbackTr: string;
+}
+
+export interface RoleplayVocabularyAssessmentDraft {
+  vocabularyId: string;
+  usedCorrectly: boolean;
+  evidenceQuote: string;
+  feedbackTr: string;
+}
+
+export interface RoleplayStrengthDraft {
+  labelTr: string;
+  evidenceQuote: string;
+}
+
+export interface RoleplayImprovement {
+  issueTr: string;
+  suggestionEn: string;
+  reasonTr: string;
+}
+
+export interface RoleplayEvaluationDraft {
+  goalAchieved: boolean;
+  goalEvidence: string;
+  criteria: RoleplayCriterionAssessmentDraft[];
+  targetVocabulary: RoleplayVocabularyAssessmentDraft[];
+  strengths: RoleplayStrengthDraft[];
+  improvements: RoleplayImprovement[];
+  polishedAnswer: string;
+  summaryTr: string;
+}
+
+export interface RoleplayCriterionAssessment
+  extends RoleplayCriterionAssessmentDraft {
+  label: string;
+  weight: number;
+}
+
+export interface RoleplayVocabularyAssessment {
+  vocabularyId: string;
+  term: string;
+  matchedForm: string;
+  evidenceQuote: string;
+  usedCorrectly: boolean;
+  feedbackTr: string;
+}
+
+export interface RoleplayEvaluation {
+  passed: boolean;
+  overallScore: number;
+  goalAchieved: boolean;
+  goalEvidence: string;
+  wordCount: number;
+  lengthStatus: RoleplayLengthStatus;
+  criteria: RoleplayCriterionAssessment[];
+  usedTargetVocabulary: RoleplayVocabularyAssessment[];
+  missingTargetVocabulary: Array<{ vocabularyId: string; term: string }>;
+  strengths: RoleplayStrengthDraft[];
+  improvements: RoleplayImprovement[];
+  polishedAnswer: string;
+  summaryTr: string;
+  primaryError?: LearningErrorType;
+}
+
 export type AchievementKind =
   | "scenario"
   | "accuracy"
@@ -440,6 +534,7 @@ export type LearningErrorType =
   | "tone"
   | "word-order"
   | "comprehension"
+  | "communication"
   | "timeout";
 
 export interface AnswerAttempt {

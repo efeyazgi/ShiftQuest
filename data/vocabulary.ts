@@ -1,4 +1,5 @@
 import type { CEFRLevel, PartOfSpeech, ScenarioCategory, VocabularyItem } from "../types";
+import { advancedVocabulary } from "./advanced-vocabulary";
 
 type VocabularySeed = readonly [
   id: string,
@@ -10,6 +11,7 @@ type VocabularySeed = readonly [
   exampleEn: string,
   exampleTr: string,
   level: CEFRLevel,
+  acceptedForms?: readonly string[],
 ];
 
 const buildVocabulary = (
@@ -17,7 +19,7 @@ const buildVocabulary = (
   rows: readonly VocabularySeed[],
 ): VocabularyItem[] =>
   rows.map(
-    ([id, term, meaningTr, partOfSpeech, ipa, pronunciationTr, exampleEn, exampleTr, level]) => ({
+    ([id, term, meaningTr, partOfSpeech, ipa, pronunciationTr, exampleEn, exampleTr, level, acceptedForms]) => ({
       id,
       term,
       meaningTr,
@@ -30,26 +32,27 @@ const buildVocabulary = (
       level,
       tags: [category, level.toLowerCase(), partOfSpeech.replace(" ", "-")],
       audioText: term,
+      ...(acceptedForms?.length ? { acceptedForms: [...acceptedForms] } : {}),
     }),
   );
 
 export const officeVocabulary = buildVocabulary("office", [
   ["office-follow-up", "follow up", "takip etmek", "phrasal verb", "/ˈfɒləʊ ʌp/", "folov ap", "I will follow up with the design team tomorrow.", "Yarın tasarım ekibiyle konuyu takip edeceğim.", "B1"],
   ["office-walk-through", "walk me through", "adım adım anlatmak", "phrase", "/wɔːk miː θruː/", "vok mi tru", "Could you walk me through the new form?", "Yeni formu bana adım adım anlatabilir misin?", "B1"],
-  ["office-keep-updated", "keep someone updated", "birini gelişmelerden haberdar etmek", "phrase", "/kiːp ˈsʌmwʌn ʌpˈdeɪtɪd/", "kiip samvan apdeytıd", "I’ll keep you updated on the task.", "Görevle ilgili seni gelişmelerden haberdar edeceğim.", "B1"],
+  ["office-keep-updated", "keep someone updated", "birini gelişmelerden haberdar etmek", "phrase", "/kiːp ˈsʌmwʌn ʌpˈdeɪtɪd/", "kiip samvan apdeytıd", "I’ll keep you updated on the task.", "Görevle ilgili seni gelişmelerden haberdar edeceğim.", "B1", ["keep you updated", "keep them updated", "keep the team updated"]],
   ["office-double-check", "double-check", "tekrar kontrol etmek", "verb", "/ˌdʌbəl ˈtʃek/", "dabıl çek", "Let me double-check the figures before I reply.", "Yanıtlamadan önce rakamları tekrar kontrol edeyim.", "B1"],
   ["office-deadline", "deadline", "son teslim tarihi", "noun", "/ˈdedlaɪn/", "dedlayn", "The deadline is Friday afternoon.", "Son teslim tarihi cuma öğleden sonra.", "B1"],
   ["office-workload", "workload", "iş yükü", "noun", "/ˈwɜːkləʊd/", "vörkloud", "My workload is quite heavy this week.", "Bu hafta iş yüküm oldukça fazla.", "B1"],
   ["office-priority", "priority", "öncelik", "noun", "/praɪˈɒrəti/", "prayorıti", "Which request should be my first priority?", "Hangi talep ilk önceliğim olmalı?", "B1"],
   ["office-feedback", "feedback", "geri bildirim", "noun", "/ˈfiːdbæk/", "fiidbek", "Could I get your feedback on this draft?", "Bu taslak hakkında geri bildiriminizi alabilir miyim?", "B1"],
   ["office-task-status", "task status", "görevin durumu", "phrase", "/tɑːsk ˈsteɪtəs/", "task steytıs", "The task status is shown on the board.", "Görevin durumu panoda gösteriliyor.", "B1"],
-  ["office-get-back", "get back to someone", "birine geri dönüş yapmak", "phrase", "/ɡet bæk tə ˈsʌmwʌn/", "get bek tı samvan", "I’ll get back to you shortly.", "Size kısa süre içinde geri döneceğim.", "B1"],
+  ["office-get-back", "get back to someone", "birine geri dönüş yapmak", "phrase", "/ɡet bæk tə ˈsʌmwʌn/", "get bek tı samvan", "I’ll get back to you shortly.", "Size kısa süre içinde geri döneceğim.", "B1", ["get back to you", "get back to them", "get back to the team"]],
   ["office-necessary-changes", "make the necessary changes", "gerekli değişiklikleri yapmak", "phrase", "/meɪk ðə ˈnesəsəri ˈtʃeɪndʒɪz/", "meyk dı nesısırı çeyncız", "I’ll make the necessary changes today.", "Gerekli değişiklikleri bugün yapacağım.", "B1"],
   ["office-point-out", "point out", "belirtmek; dikkat çekmek", "phrasal verb", "/pɔɪnt aʊt/", "point aut", "Thanks for pointing that out.", "Buna dikkat çektiğiniz için teşekkürler.", "B1"],
   ["office-available", "available", "müsait; erişilebilir", "adjective", "/əˈveɪləbəl/", "ıveylıbıl", "Are you available for a quick call?", "Kısa bir görüşme için müsait misiniz?", "B1"],
   ["office-clarify", "clarify", "açıklığa kavuşturmak", "verb", "/ˈklærəfaɪ/", "klerıfay", "Could you clarify what you mean?", "Ne demek istediğinizi açıklayabilir misiniz?", "B1"],
   ["office-draft", "draft", "taslak", "noun", "/drɑːft/", "draft", "I attached the first draft of the report.", "Raporun ilk taslağını ekledim.", "B2"],
-  ["office-attachment", "attachment", "e-posta eki", "noun", "/əˈtætʃmənt/", "ıteçmınt", "The spreadsheet is included as an attachment.", "Elektronik tablo e-posta eki olarak dahil edildi.", "B2"],
+  ["office-attachment", "attachment", "e-posta eki", "noun", "/əˈtætʃmənt/", "ıteçmınt", "The spreadsheet is included as an attachment.", "Elektronik tablo e-posta eki olarak dahil edildi.", "B2", ["attached", "the attachment"]],
   ["office-reschedule", "reschedule", "yeniden zamanlamak", "verb", "/ˌriːˈʃedjuːl/", "rişedyul", "Could we reschedule our review for Thursday?", "İncelememizi perşembeye yeniden planlayabilir miyiz?", "B2"],
   ["office-be-responsible", "be responsible for", "-den sorumlu olmak", "phrase", "/bi rɪˈspɒnsəbəl fɔː/", "bi risponsıbıl for", "I’m responsible for updating the weekly tracker.", "Haftalık takip çizelgesini güncellemekten sorumluyum.", "B2"],
 ] as const);
@@ -103,7 +106,7 @@ export const qualityVocabulary = buildVocabulary("quality", [
   ["quality-according-procedure", "according to the procedure", "prosedüre göre", "phrase", "/əˈkɔːdɪŋ tə ðə prəˈsiːdʒə/", "ıkording tı dı prosicır", "According to the procedure, the form needs a date.", "Prosedüre göre formda tarih bulunmalı.", "B1"],
   ["quality-approval", "approval", "onay", "noun", "/əˈpruːvəl/", "ıpruuvıl", "We may need approval from the quality team.", "Kalite ekibinden onay almamız gerekebilir.", "B1"],
   ["quality-batch-record", "batch record", "parti kayıt formu", "noun", "/bætʃ ˈrekɔːd/", "beç rekord", "Please check the batch record for missing fields.", "Lütfen parti kayıt formunda eksik alan olup olmadığını kontrol edin.", "B1"],
-  ["quality-sop", "standard operating procedure (SOP)", "standart çalışma prosedürü", "noun", "/ˈstændəd ˈɒpəreɪtɪŋ prəˈsiːdʒə/", "stendırd opıreyting prosicır", "The SOP is available in the document system.", "SOP belge sisteminde mevcut.", "B1"],
+  ["quality-sop", "standard operating procedure (SOP)", "standart çalışma prosedürü", "noun", "/ˈstændəd ˈɒpəreɪtɪŋ prəˈsiːdʒə/", "stendırd opıreyting prosicır", "The SOP is available in the document system.", "SOP belge sisteminde mevcut.", "B1", ["standard operating procedure", "SOP"]],
   ["quality-deviation", "deviation", "sapma", "noun", "/ˌdiːviˈeɪʃən/", "diiviyeyşın", "Quality is reviewing the deviation report.", "Kalite, sapma raporunu inceliyor.", "B2"],
   ["quality-corrective-action", "corrective action", "düzeltici faaliyet", "phrase", "/kəˈrektɪv ˈækʃən/", "kırektiv ekşın", "The team agreed on a corrective action.", "Ekip bir düzeltici faaliyet üzerinde anlaştı.", "B2"],
   ["quality-form", "form", "form", "noun", "/fɔːm/", "form", "There is an error in the form.", "Formda bir hata var.", "B1"],
@@ -159,7 +162,7 @@ export const careerVocabulary = buildVocabulary("career", [
   ["career-professional-network", "professional network", "profesyonel çevre", "noun", "/prəˈfeʃənəl ˈnetwɜːk/", "profeşınıl netvörk", "The event helped me expand my professional network.", "Etkinlik profesyonel çevremi genişletmeme yardımcı oldu.", "B2"],
 ] as const);
 
-/** 108 complete cards: 18 for each of the six scenario categories. */
+/** 180 complete cards: 30 for each of the six scenario categories. */
 export const vocabulary: VocabularyItem[] = [
   ...officeVocabulary,
   ...productionVocabulary,
@@ -167,6 +170,7 @@ export const vocabulary: VocabularyItem[] = [
   ...qualityVocabulary,
   ...safetyVocabulary,
   ...careerVocabulary,
+  ...advancedVocabulary,
 ];
 
 export const vocabularyById = new Map(vocabulary.map((item) => [item.id, item]));

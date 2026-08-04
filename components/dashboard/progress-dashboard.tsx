@@ -43,15 +43,17 @@ import { Panel } from "@/components/ui/panel";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { GAME_TITLE_DISCLAIMER, getCareerTitleForXp, getNextCareerTitle } from "@/data/career";
 import { scenarios, scenarioById } from "@/data/scenarios";
+import { LEVEL_PROFILES } from "@/data/levels";
 import { vocabularyById } from "@/data/vocabulary";
 import { useGameStore } from "@/features/game/store";
-import type {
-  AnswerAttempt,
-  LearningActivity,
-  LearningErrorType,
-  ScenarioCategory,
-  ScenarioStepType,
-  VocabularyProgress,
+import {
+  CEFR_LEVELS,
+  type AnswerAttempt,
+  type LearningActivity,
+  type LearningErrorType,
+  type ScenarioCategory,
+  type ScenarioStepType,
+  type VocabularyProgress,
 } from "@/types";
 
 const categories: Array<{ id: ScenarioCategory; label: string; short: string }> = [
@@ -76,6 +78,7 @@ const errorLabels: Record<LearningErrorType, string> = {
   tone: "professional tone",
   "word-order": "word order",
   comprehension: "context comprehension",
+  communication: "communication goal",
   timeout: "quick responses",
 };
 
@@ -311,7 +314,7 @@ export function ProgressDashboard() {
       .slice(0, 6);
   }, [activities, vocabularyProgress]);
 
-  const levelProgress = (["B1", "B2"] as const).map((level) => {
+  const levelProgress = CEFR_LEVELS.map((level) => {
     const levelAttempts = attempts.filter((attempt) => attempt.level === level);
     const coveredMissions = new Set(levelAttempts.map((attempt) => attempt.scenarioId)).size;
     const availableMissions = Math.max(1, scenarios.filter((scenario) => scenario.level === level).length);
@@ -542,7 +545,7 @@ export function ProgressDashboard() {
                     <span className="font-bold text-slate-300">{level.level} proficiency signal {profile?.level === level.level ? <span className="text-cyan">· selected</span> : null}</span>
                     <span className="text-slate-500">{level.attempts ? `${level.score}%` : "waiting"}</span>
                   </div>
-                  <ProgressBar value={level.score} color={level.level === "B1" ? "cyan" : "lime"} />
+                  <ProgressBar value={level.score} color={LEVEL_PROFILES[level.level].progressColor} />
                 </div>
               ))}
             </div>

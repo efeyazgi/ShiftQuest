@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Check, ChevronDown, Clock3, Grip, LoaderCircle, Radio, Send, Settings2, Sparkles } from "lucide-react";
-import type { LearningErrorType, ScenarioStep } from "@/types";
+import type { LearningErrorType, RoleplayEvaluation, ScenarioStep } from "@/types";
 import { AudioPlayer } from "@/components/audio/audio-player";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
@@ -18,6 +18,8 @@ export type StepAnswer = {
   feedback?: string;
   naturalAlternative?: string;
   errorType?: LearningErrorType;
+  roleplayEvaluation?: RoleplayEvaluation;
+  evaluationSource?: "mock" | "provider";
 };
 
 const normalize = (value: string) => value.toLowerCase().replace(/[.,!?]/g, "").replace(/\s+/g, " ").trim();
@@ -114,7 +116,7 @@ function MatchingGame({ step, onAnswer }: { step: Extract<ScenarioStep, { type: 
           </label>
         ))}
       </div>
-      <Button disabled={Object.keys(answers).length !== step.pairs.length} onClick={() => { const correct = step.pairs.every((pair) => answers[pair.id] === pair.right); onAnswer({ correct, answer: Object.values(answers), naturalAlternative: step.pairs.map((pair) => `${pair.left}: ${pair.right}`).join(" · "), errorType: "vocabulary" }); }}>Eşleşmeleri kontrol et</Button>
+      <Button disabled={Object.keys(answers).length !== step.pairs.length} onClick={() => { const correct = step.pairs.every((pair) => answers[pair.id] === pair.right); onAnswer({ correct, answer: step.pairs.map((pair) => answers[pair.id] ?? ""), naturalAlternative: step.pairs.map((pair) => `${pair.left}: ${pair.right}`).join(" · "), errorType: "vocabulary" }); }}>Eşleşmeleri kontrol et</Button>
     </div>
   );
 }
@@ -130,7 +132,7 @@ function PuzzleGame({ step, onAnswer }: { step: Extract<ScenarioStep, { type: "w
   );
 }
 
-function RoleplayGame({ step, onAnswer }: { step: Extract<ScenarioStep, { type: "roleplay" }>; onAnswer: (answer: StepAnswer) => void }) {
+function RoleplayGame({ scenarioId, step, onAnswer }: { scenarioId: string; step: Extract<ScenarioStep, { type: "roleplay" }>; onAnswer: (answer: StepAnswer) => void }) {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const aiProvider = useProviderSettingsStore((state) => state.llm.provider);
@@ -138,33 +140,43 @@ function RoleplayGame({ step, onAnswer }: { step: Extract<ScenarioStep, { type: 
 
   const submit = async () => {
     setLoading(true);
-    let feedback = step.mockFeedback.summary;
-    let naturalAlternative = step.sampleAnswer;
-    if (aiProvider !== "mock") {
-      try {
-        const providerConfig = getRuntimeLLMConfig();
-        const response = await fetch("/api/roleplay", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message,
-            level: words > 24 ? "B2" : "B1",
-            role: step.characterRole,
-            context: step.userGoal,
-            ...(providerConfig ? { providerConfig } : {}),
-          }),
-        });
-        if (response.ok) {
-          const body = await response.json() as { data?: { reply?: string; feedback?: { summary?: string; correction?: string } } };
-          feedback = body.data?.feedback?.summary ?? feedback;
-          naturalAlternative = body.data?.feedback?.correction ?? naturalAlternative;
-        }
-      } catch {
-        /* Deterministic seed feedback remains available offline. */
-      }
+    try {
+      const providerConfig = getRuntimeLLMConfig();
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scenarioId,
+          stepId: step.id,
+          message,
+          ...(providerConfig ? { providerConfig } : {}),
+        }),
+      });
+      if (!response.ok) throw new Error("roleplay-evaluation-failed");
+      const body = await response.json() as {
+        data: RoleplayEvaluation;
+        source: "mock" | "provider";
+      };
+      onAnswer({
+        correct: body.data.passed,
+        answer: message,
+        feedback: body.data.summaryTr,
+        naturalAlternative: body.data.polishedAnswer,
+        errorType: body.data.primaryError,
+        roleplayEvaluation: body.data,
+        evaluationSource: body.source,
+      });
+    } catch {
+      onAnswer({
+        correct: false,
+        answer: message,
+        feedback: "Yanıtın şu anda değerlendirilemedi. Görev akışını sürdürebilirsin; bu adım için XP verilmedi.",
+        naturalAlternative: step.sampleAnswer,
+        errorType: "communication",
+      });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-    onAnswer({ correct: words >= step.minimumWords, answer: message, feedback, naturalAlternative, errorType: words >= step.minimumWords ? undefined : "communication" as LearningErrorType });
   };
 
   return (
@@ -173,8 +185,8 @@ function RoleplayGame({ step, onAnswer }: { step: Extract<ScenarioStep, { type: 
         <div className="mb-2 flex flex-wrap items-center gap-2 font-display text-[10px] uppercase tracking-[0.2em] text-cyan"><Radio className="h-3.5 w-3.5 animate-pulse" /> AI roleplay channel <span className="rounded border border-white/10 bg-black/20 px-2 py-1 text-[8px] tracking-normal text-slate-400">{aiProvider !== "mock" ? "External AI" : "Yerleşik pratik motoru"}</span><Link href="/settings#ai-voice-services" className="ml-auto inline-flex items-center gap-1 text-[8px] text-cyan hover:text-white"><Settings2 className="h-3 w-3" /> AI ayarları</Link></div>
         <p className="text-sm leading-relaxed text-white">“{step.openingLine}”</p><p className="mt-2 text-xs text-slate-400">Hedef: {step.userGoal}</p>
       </div>
-      <textarea value={message} onChange={(event) => setMessage(event.target.value.slice(0, 700))} rows={5} className="w-full resize-none rounded-xl border border-white/10 bg-black/25 p-4 text-sm leading-relaxed text-white placeholder:text-slate-600" placeholder="Write a clear, professional reply…" aria-label="Roleplay yanıtı" />
-      <div className="flex flex-wrap items-center justify-between gap-3"><span className={cn("text-xs", words >= step.minimumWords ? "text-lime" : "text-slate-500")}>{words}/{step.minimumWords} minimum words</span><Button onClick={() => void submit()} disabled={loading || words < Math.max(2, Math.floor(step.minimumWords / 2))}>{loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Yanıtı değerlendir</Button></div>
+      <textarea value={message} onChange={(event) => setMessage(event.target.value.slice(0, 2_000))} rows={7} className="w-full resize-none rounded-xl border border-white/10 bg-black/25 p-4 text-sm leading-relaxed text-white placeholder:text-slate-600" placeholder="Write a clear, professional reply…" aria-label="Roleplay yanıtı" />
+      <div className="flex flex-wrap items-center justify-between gap-3"><span className={cn("text-xs", words >= step.minimumWords ? words > step.maximumWords ? "text-amber" : "text-lime" : "text-slate-500")}>{words} words · target {step.minimumWords}–{step.maximumWords}</span><Button onClick={() => void submit()} disabled={loading || words < 2}>{loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Yanıtı değerlendir</Button></div>
     </div>
   );
 }
@@ -206,13 +218,13 @@ function BossGame({ step, onAnswer }: { step: Extract<ScenarioStep, { type: "bos
   );
 }
 
-export function StepInteraction({ step, onAnswer }: { step: ScenarioStep; onAnswer: (answer: StepAnswer) => void }) {
+export function StepInteraction({ scenarioId, step, onAnswer }: { scenarioId: string; step: ScenarioStep; onAnswer: (answer: StepAnswer) => void }) {
   switch (step.type) {
     case "dialogue-choice": case "fill-blank": case "listening": case "tone-check": case "quick-response": return <ChoiceGame step={step} onAnswer={onAnswer} />;
     case "sentence-builder": return <SentenceBuilder step={step} onAnswer={onAnswer} />;
     case "matching": return <MatchingGame step={step} onAnswer={onAnswer} />;
     case "word-puzzle": return <PuzzleGame step={step} onAnswer={onAnswer} />;
-    case "roleplay": return <RoleplayGame step={step} onAnswer={onAnswer} />;
+    case "roleplay": return <RoleplayGame scenarioId={scenarioId} step={step} onAnswer={onAnswer} />;
     case "boss-battle": return <BossGame step={step} onAnswer={onAnswer} />;
   }
 }

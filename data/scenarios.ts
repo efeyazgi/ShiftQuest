@@ -17,6 +17,8 @@ import type {
   ToneCheckStep,
   WordPuzzleStep,
 } from "../types";
+import { getLevelProfile } from "./levels";
+import { advancedScenarios } from "./advanced-scenarios";
 
 type StepBase = Omit<BaseScenarioStep, "type">;
 
@@ -159,7 +161,7 @@ const listening = (
   transcriptTr,
   ttsText: transcript,
   accent: level === "B1" ? "american" : "british",
-  playbackRate: level === "B1" ? 0.75 : 1,
+  playbackRate: getLevelProfile(level).playbackRate,
   task: "identify-intent",
   options: choices(id, correct, distractors, explanationEn, explanationTr),
   correctOptionId: `${id}-correct`,
@@ -223,7 +225,7 @@ const quickResponse = (
   type: "quick-response",
   instructionEn: "Choose the best reply before the timer ends.",
   instructionTr: "Süre bitmeden en iyi yanıtı seç.",
-  timeLimitSeconds: level === "B1" ? 15 : 10,
+  timeLimitSeconds: level === "B1" ? 15 : level === "B2" ? 10 : level === "C1" ? 9 : 8,
   options: choices(id, correct, distractors, explanationEn, explanationTr),
   correctOptionId: `${id}-correct`,
   comboBonusXp: 5,
@@ -253,6 +255,7 @@ const wordPuzzle = (
 
 const roleplay = (
   id: string,
+  level: CEFRLevel,
   prompt: string,
   promptTr: string,
   characterId: string,
@@ -270,8 +273,8 @@ const roleplay = (
   characterRole,
   openingLine,
   userGoal,
-  minimumWords: 12,
-  maximumWords: 55,
+  minimumWords: getLevelProfile(level).roleplayWords.minimum,
+  maximumWords: getLevelProfile(level).roleplayWords.maximum,
   successCriteria: [
     { id: `${id}-clarity`, label: "Clarity", description: "The main message is immediately clear.", weight: 30 },
     { id: `${id}-tone`, label: "Professional tone", description: "The response is polite and natural.", weight: 30 },
@@ -336,13 +339,13 @@ const scenarioMeta = (
   descriptionTr,
   level,
   category,
-  estimatedMinutes: level === "B1" ? 6 : 9,
+  estimatedMinutes: getLevelProfile(level).estimatedMinutes,
   targetVocabularyIds,
-  xpReward: level === "B1" ? 100 : 145,
-  coinReward: level === "B1" ? 35 : 50,
+  xpReward: level === "B1" ? 100 : level === "B2" ? 145 : level === "C1" ? 210 : 260,
+  coinReward: level === "B1" ? 35 : level === "B2" ? 50 : level === "C1" ? 65 : 80,
   unlock: { requiredXp: Math.max(0, (sortOrder - 2) * 40), requiredScenarioIds: [] },
   sortOrder,
-  isBoss: level === "B2",
+  isBoss: level === "B2" || level === "C2",
 });
 
 const officeCharacters = [
@@ -462,7 +465,7 @@ const officePrioritiesB2: Scenario = {
       "office-b2-4", "B2", "A preliminary version of a document.", "Bir belgenin ilk hâli.", "TFARD", "DRAFT", ["office-draft"], "",
     ),
     roleplay(
-      "office-b2-5", "Request focused feedback on your draft and mention the attachment.", "Taslağın hakkında odaklı geri bildirim iste ve e-posta ekinden söz et.",
+      "office-b2-5", "B2", "Request focused feedback on your draft and mention the attachment.", "Taslağın hakkında odaklı geri bildirim iste ve e-posta ekinden söz et.",
       "daniel", "Engineering Manager", "I have ten minutes before my next meeting. What would you like me to review?",
       "Politely direct Daniel to the attached draft and ask for feedback on clarity and priorities.",
       "Could you review the attached draft, particularly the priorities on page two? I’d appreciate your feedback on whether the timeline is clear.",
@@ -558,7 +561,7 @@ const productionDelayB2: Scenario = {
       "‘Still under investigation’ avoids presenting an assumption as a fact.", "‘Still under investigation’ bir varsayımı gerçek gibi sunmaktan kaçınır.",
     ),
     roleplay(
-      "production-b2-5", "Brief Lena using only confirmed information.", "Lena’ya yalnızca doğrulanmış bilgileri kullanarak bilgi ver.",
+      "production-b2-5", "B2", "Brief Lena using only confirmed information.", "Lena’ya yalnızca doğrulanmış bilgileri kullanarak bilgi ver.",
       "lena", "Shift Supervisor", "Give me the current status and tell me what we know about the delay.",
       "State the downtime, current status and ongoing investigation; do not invent a technical cause.",
       "We had forty minutes of downtime and are slightly behind schedule. The current status is stable, and the cause is still being investigated. I’ll keep you updated.",
@@ -654,7 +657,7 @@ const meetingTimelineB2: Scenario = {
       "‘Bring up’ naturally introduces a topic for discussion.", "‘Bring up’ bir konuyu görüşmeye doğal biçimde sokar.",
     ),
     roleplay(
-      "meeting-b2-5", "Respond to Sofia with a constructive alternative.", "Sofia’ya yapıcı bir alternatifle yanıt ver.",
+      "meeting-b2-5", "B2", "Respond to Sofia with a constructive alternative.", "Sofia’ya yapıcı bir alternatifle yanıt ver.",
       "sofia", "Project Manager", "If you disagree with Friday’s date, what would you suggest instead?",
       "Briefly explain the concern, propose an alternative and invite the group’s view.",
       "My concern is that Friday leaves too little review time. Could we consider Monday instead and check whether that works for the wider team?",
@@ -756,7 +759,7 @@ const qualityDiscrepancyB2: Scenario = {
       ], ["quality-deviation", "quality-corrective-action", "quality-discrepancy"], "",
     ),
     roleplay(
-      "quality-b2-5", "Report the discrepancy to Nora without proposing an unapproved correction.", "Onaylanmamış bir düzeltme önermeden tutarsızlığı Nora’ya bildir.",
+      "quality-b2-5", "B2", "Report the discrepancy to Nora without proposing an unapproved correction.", "Onaylanmamış bir düzeltme önermeden tutarsızlığı Nora’ya bildir.",
       "nora", "Quality Specialist", "What exactly did you find, and what has been confirmed so far?",
       "Describe the two records, distinguish fact from assumption and ask how to document the follow-up.",
       "The batch record shows 14:20, while the supporting form shows 14:40. The discrepancy is confirmed, but the cause is not. Could you advise how we should document the follow-up according to the SOP?",
@@ -854,7 +857,7 @@ const safetyReportB2: Scenario = {
       "The question requests precise wording from the responsible specialist.", "Soru, sorumlu uzmandan kesin mesajı ister.",
     ),
     roleplay(
-      "safety-b2-5", "Give Aylin a concise, factual observation report.", "Aylin’e kısa ve gerçeklere dayalı bir gözlem bildirimi ver.",
+      "safety-b2-5", "B2", "Give Aylin a concise, factual observation report.", "Aylin’e kısa ve gerçeklere dayalı bir gözlem bildirimi ver.",
       "aylin", "Area Coordinator", "Tell me what you saw, where it was and what remains unconfirmed.",
       "State the visible spill and location, say the source is unknown and mention that safety was contacted. Do not give cleanup or equipment instructions.",
       "I observed a small spill beside the marked walkway. I can’t confirm its source, and I have contacted the safety coordinator for guidance.",
@@ -950,7 +953,7 @@ const careerInterviewB2: Scenario = {
       "A credible strength is specific enough to be supported with an example.", "İnandırıcı bir güçlü yön, örnekle desteklenebilecek kadar belirgindir.",
     ),
     roleplay(
-      "career-b2-5", "Answer Riley’s behavioural interview question.", "Riley’nin davranışsal mülakat sorusunu yanıtla.",
+      "career-b2-5", "B2", "Answer Riley’s behavioural interview question.", "Riley’nin davranışsal mülakat sorusunu yanıtla.",
       "riley", "HR Specialist", "Tell me about a time you helped your team solve a problem.",
       "Give a short situation, explain your contribution and state the result without exaggerating your responsibility.",
       "During my internship, our weekly data was difficult to compare. I suggested a shared summary format and checked it with my supervisor. The team then prepared updates more consistently.",
@@ -968,9 +971,9 @@ const careerInterviewB2: Scenario = {
 };
 
 /**
- * Exactly twelve seed missions: one guided B1 and one nuanced B2 mission for
- * every category. B1 missions use three-option questions and Turkish hints;
- * B2 missions use four close options, open roleplay and multi-phase bosses.
+ * Twenty-four seed missions: one mission for every level/category pair.
+ * C1 adds diplomatic, evidence-aware communication; C2 adds executive
+ * synthesis and a three-phase boss.
  */
 export const scenarios: Scenario[] = [
   officeHelpB1,
@@ -985,6 +988,7 @@ export const scenarios: Scenario[] = [
   safetyReportB2,
   careerIntroductionB1,
   careerInterviewB2,
+  ...advancedScenarios,
 ];
 
 export const seedScenarios = scenarios;

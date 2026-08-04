@@ -24,6 +24,8 @@ import {
 import Link from "next/link";
 
 import { brand } from "@/config/brand";
+import { LEVEL_PROFILES } from "@/data/levels";
+import { CEFR_LEVELS, type CEFRLevel } from "@/types";
 
 import { BrandLockup } from "./brand-lockup";
 import { CareerMapPreview } from "./career-map-preview";
@@ -63,8 +65,19 @@ const missionFeed = [
   "SAFETY REPORT",
 ];
 
-const b1Items = ["Shorter workplace dialogue", "Turkish hints when needed", "Guided professional phrases"];
-const b2Items = ["Natural, nuanced dialogue", "Tone and formality choices", "Advanced roleplay missions"];
+const levelItems: Record<CEFRLevel, string[]> = {
+  B1: ["Shorter workplace dialogue", "Turkish hints when needed", "Guided professional phrases"],
+  B2: ["Natural, nuanced dialogue", "Tone and formality choices", "Advanced roleplay missions"],
+  C1: ["Implicit meaning and hedging", "Diplomatic disagreement", "Evidence-based long responses"],
+  C2: ["Register control", "Synthesis under ambiguity", "Executive-level precision"],
+};
+
+const levelStyles: Record<CEFRLevel, { border: string; text: string; bg: string }> = {
+  B1: { border: "border-cyan/25", text: "text-cyan", bg: "bg-cyan/[0.055]" },
+  B2: { border: "border-lime/25", text: "text-lime", bg: "bg-lime/[0.05]" },
+  C1: { border: "border-amber/25", text: "text-amber", bg: "bg-amber/[0.05]" },
+  C2: { border: "border-coral/25", text: "text-coral", bg: "bg-coral/[0.05]" },
+};
 
 export function LandingPage() {
   const reduceMotion = useReducedMotion();
@@ -88,7 +101,7 @@ export function LandingPage() {
           <nav className="hidden items-center gap-8 text-[11px] font-bold uppercase tracking-[0.16em] text-white/55 md:flex" aria-label="Main navigation">
             <a className="transition hover:text-cyan" href="#field-training">Field training</a>
             <a className="transition hover:text-cyan" href="#career-map">Career map</a>
-            <a className="transition hover:text-cyan" href="#levels">B1 / B2</a>
+            <a className="transition hover:text-cyan" href="#levels">B1 / C2</a>
           </nav>
           <Link
             href="/auth/login"
@@ -151,7 +164,7 @@ export function LandingPage() {
 
             <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-[10px] font-bold uppercase tracking-[0.15em] text-white/40">
               <span className="flex items-center gap-2"><Clock3 className="size-3.5 text-cyan" /> 5–10 min missions</span>
-              <span className="flex items-center gap-2"><Languages className="size-3.5 text-cyan" /> Built for B1 + B2</span>
+              <span className="flex items-center gap-2"><Languages className="size-3.5 text-cyan" /> Built for B1 through C2</span>
               <span className="flex items-center gap-2"><ShieldCheck className="size-3.5 text-cyan" /> No penalty learning</span>
             </div>
           </motion.div>
@@ -299,23 +312,21 @@ export function LandingPage() {
           <motion.div {...reveal}>
             <p className="text-[10px] font-black uppercase tracking-[0.24em] text-amber">LVL / Calibrated difficulty</p>
             <h2 className="mt-5 font-display text-4xl font-black uppercase leading-[0.95] tracking-[-0.045em] sm:text-6xl">Your level changes the mission.</h2>
-            <p className="mt-6 max-w-lg text-base leading-7 text-white/50">B1 is supported and direct. B2 adds ambiguity, natural phrasing and sharper tone choices. Neither path turns workplace English into a textbook.</p>
+            <p className="mt-6 max-w-lg text-base leading-7 text-white/50">B1 builds supported confidence, B2 adds nuance, C1 trains diplomacy and C2 sharpens synthesis and register control. Every route stays practical and workplace-focused.</p>
             <div className="mt-8 inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-[10px] font-bold uppercase tracking-[0.15em] text-white/50"><Gauge className="size-4 text-amber" /> Difficulty adapts to performance</div>
           </motion.div>
 
           <motion.div {...reveal} className="grid gap-4 sm:grid-cols-2">
-            <div className="relative overflow-hidden rounded-3xl border border-cyan/25 bg-cyan/[0.055] p-6 sm:p-8">
-              <span className="absolute -right-4 -top-9 font-display text-[9rem] font-black text-cyan/[0.04]">1</span>
-              <div className="flex items-center justify-between"><span className="font-display text-3xl font-black text-cyan">B1</span><span className="rounded-full border border-cyan/20 bg-cyan/10 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-cyan">Guided route</span></div>
-              <p className="mt-4 text-sm leading-6 text-white/50">Build confidence in everyday workplace situations.</p>
-              <ul className="mt-7 space-y-4">{b1Items.map((item) => <li key={item} className="flex items-center gap-3 text-sm text-white/75"><span className="grid size-5 place-items-center rounded-full bg-cyan/10 text-cyan"><Check className="size-3" /></span>{item}</li>)}</ul>
-            </div>
-            <div className="relative overflow-hidden rounded-3xl border border-lime/25 bg-lime/[0.05] p-6 sm:p-8 sm:translate-y-8">
-              <span className="absolute -right-4 -top-9 font-display text-[9rem] font-black text-lime/[0.035]">2</span>
-              <div className="flex items-center justify-between"><span className="font-display text-3xl font-black text-lime">B2</span><span className="rounded-full border border-lime/20 bg-lime/10 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-lime">Challenge route</span></div>
-              <p className="mt-4 text-sm leading-6 text-white/50">Sound natural when conversations become less predictable.</p>
-              <ul className="mt-7 space-y-4">{b2Items.map((item) => <li key={item} className="flex items-center gap-3 text-sm text-white/75"><span className="grid size-5 place-items-center rounded-full bg-lime/10 text-lime"><Check className="size-3" /></span>{item}</li>)}</ul>
-            </div>
+            {CEFR_LEVELS.map((level, index) => {
+              const style = levelStyles[level];
+              const profile = LEVEL_PROFILES[level];
+              return <div key={level} className={`relative overflow-hidden rounded-3xl border p-6 sm:p-7 ${style.border} ${style.bg}`}>
+                <span className="absolute -right-4 -top-9 font-display text-[9rem] font-black text-white/[0.025]">{index + 1}</span>
+                <div className="relative flex items-center justify-between gap-3"><span className={`font-display text-3xl font-black ${style.text}`}>{level}</span><span className={`rounded-full border border-white/10 bg-black/10 px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.15em] ${style.text}`}>{profile.routeLabel}</span></div>
+                <p className="relative mt-4 text-sm leading-6 text-white/50">{profile.description}</p>
+                <ul className="relative mt-6 space-y-3">{levelItems[level].map((item) => <li key={item} className="flex items-center gap-3 text-sm text-white/75"><span className={`grid size-5 place-items-center rounded-full bg-white/5 ${style.text}`}><Check className="size-3" /></span>{item}</li>)}</ul>
+              </div>;
+            })}
           </motion.div>
         </div>
       </section>

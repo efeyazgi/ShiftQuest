@@ -61,6 +61,43 @@ export const googleRoleplayJsonSchema = object({
   sessionComplete: boolean(),
 });
 
+export const googleRoleplayEvaluationJsonSchema = object({
+  goalAchieved: boolean(),
+  goalEvidence: text("An exact quote copied from the learner message."),
+  criteria: array(
+    object({
+      criterionId: text(),
+      score: integer("Score from 0 to 100."),
+      met: boolean(),
+      evidenceQuote: text("An exact quote copied from the learner message."),
+      feedbackTr: text(),
+    }),
+  ),
+  targetVocabulary: array(
+    object({
+      vocabularyId: text(),
+      usedCorrectly: boolean(),
+      evidenceQuote: text("An exact quote copied from the learner message."),
+      feedbackTr: text(),
+    }),
+  ),
+  strengths: array(
+    object({
+      labelTr: text(),
+      evidenceQuote: text("An exact quote copied from the learner message."),
+    }),
+  ),
+  improvements: array(
+    object({
+      issueTr: text(),
+      suggestionEn: text(),
+      reasonTr: text(),
+    }),
+  ),
+  polishedAnswer: text(),
+  summaryTr: text(),
+});
+
 const categorySchema = enumText([
   "office",
   "production",
@@ -69,7 +106,7 @@ const categorySchema = enumText([
   "safety",
   "career",
 ]);
-const levelSchema = enumText(["B1", "B2"]);
+const levelSchema = enumText(["B1", "B2", "C1", "C2"]);
 
 const vocabularySchema = object(
   {
@@ -105,8 +142,9 @@ const vocabularySchema = object(
     level: levelSchema,
     tags: array(text()),
     audioText: text(),
+    acceptedForms: array(text()),
   },
-  ["audioText"],
+  ["audioText", "acceptedForms"],
 );
 
 const characterSchema = object({
